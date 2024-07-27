@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
@@ -6,6 +9,9 @@ plugins {
     alias(libs.plugins.kotlinKsp)
     alias(libs.plugins.daggerHilt)
 }
+
+val keysProperties = Properties()
+keysProperties.load(FileInputStream(rootProject.file("keys.properties")))
 
 android {
     namespace = "com.goazzi.mycompose"
@@ -25,6 +31,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("String", "API_KEY", "\"" + keysProperties["yelp_api_key"] + "\"")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
@@ -39,6 +48,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"

@@ -1,5 +1,6 @@
 package com.goazzi.mycompose.repository.remote
 
+import com.goazzi.mycompose.util.Constants
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -33,7 +34,7 @@ class RetrofitModule {
 
         val retrofitBuilder: Retrofit.Builder by lazy {
             Retrofit.Builder()
-                .baseUrl("https://api.kisi.io/")
+                .baseUrl(Constants.BUSINESS_URL)
                 .client(mOkHttpClient)
                 .addConverterFactory(MoshiConverterFactory.create())
         }

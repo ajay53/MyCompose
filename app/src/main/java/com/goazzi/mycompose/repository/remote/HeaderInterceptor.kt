@@ -1,11 +1,18 @@
 package com.goazzi.mycompose.repository.remote
 
+import com.goazzi.mycompose.BuildConfig
 import okhttp3.Interceptor
 import okhttp3.Response
 
 class HeaderInterceptor:Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
-        TODO("Not yet implemented")
+        val requestBuilder =
+            chain.request()
+                .newBuilder()
+                .addHeader("accept", "application/json")
+                .addHeader("Authorization", "Bearer ${BuildConfig.API_KEY}")
+                .build()
+        return chain.proceed(requestBuilder)
     }
 }
 
