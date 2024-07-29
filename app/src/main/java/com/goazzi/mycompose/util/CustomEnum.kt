@@ -7,11 +7,11 @@ enum class SortByEnum(val type: String) {
     DISTANCE("distance")
 }
 
-enum class Permission {
+enum class PermissionEnum {
     GPS, LOCATION
 }
 
-enum class Location {
-    USA,
-    CURRENT
+enum class LocationEnum(value:String) {
+    USA(value = "USA"),
+    CURRENT(value="Current")
 }

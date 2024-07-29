@@ -6,7 +6,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.goazzi.mycompose.ui.RestaurantsStateful
+import com.goazzi.mycompose.ui.BusinessStateful
 import com.goazzi.mycompose.viewmodel.MainViewModel
 
 @Composable
@@ -25,7 +25,7 @@ fun AppNavHost(
 
 
         composable(route = DashboardListScreenParams.route) {
-            RestaurantsStateful(viewModel = viewModel)
+            BusinessStateful(viewModel = viewModel)
         }
     }
 }

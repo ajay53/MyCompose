@@ -7,7 +7,7 @@ import com.squareup.moshi.JsonClass
 data class Business(
     val alias: String = "",
     val categories: List<Category>,
-    val coordinates: Center,
+    val coordinates: Coordinates,
 
     @Json(name = "display_phone")
     val displayPhone: String = "",
@@ -41,7 +41,7 @@ data class Category(
 )
 
 @JsonClass(generateAdapter = true)
-data class Center(
+data class Coordinates(
     val latitude: Double = 0.0,
     val longitude: Double = 0.0
 )
@@ -65,7 +65,7 @@ data class Location(
 
 @JsonClass(generateAdapter = true)
 data class Region(
-    val center: Center
+    val center: Coordinates
 )
 
 @JsonClass(generateAdapter = true)

@@ -153,13 +153,13 @@ dependencies {
 //    implementation("com.squareup.picasso:picasso:2.8")
 
     // Debug logger
-    implementation("com.jakewharton.timber:timber:5.0.1")
 
 
 //    implementation("com.android.volley:volley:1.2.1")
 
     //bundles______________________
     implementation(libs.bundles.androidx.lifecycle)
+    implementation(libs.bundles.misc)
 
 
    /* implementation(libs.androidx.core.ktx)

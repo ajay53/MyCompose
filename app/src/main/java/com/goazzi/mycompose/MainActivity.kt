@@ -47,14 +47,17 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    App(innerPadding = innerPadding, navController = navController)
+//                    MyComposeTheme {
+
+                        App(innerPadding = innerPadding, navController = navController)
+//                    }
                 }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+/*@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SmallTopAppBarExample() {
     Scaffold(
@@ -72,7 +75,7 @@ fun SmallTopAppBarExample() {
     ) { innerPadding ->
 //        ScrollContent(innerPadding)
     }
-}
+}*/
 
 @Composable
 fun App(

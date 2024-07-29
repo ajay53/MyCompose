@@ -142,7 +142,9 @@ androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navig
 
 #implementation("com.jakewharton.timber:timber:5.0.1")
 timber = { group = "com.jakewharton.timber", name = "timber", version = "5.0.1" }
-google-gson = { group = "com.google.code.gson", name = "gson", version = "2.11.0" }
+#google-gson = { group = "com.google.code.gson", name = "gson", version = "2.11.0" }
+#implementation("io.coil-kt:coil-compose:2.7.0")
+coil = { group = "io.coil-kt", name = "coil-compose", version = "2.7.0" }
 
 [bundles]
 androidx-lifecycle = ["androidx-lifecycle-viewmodel", "androidx-lifecycle-viewmodel-compose", "androidx-lifecycle-livedata", "androidx-lifecycle-runtime", "androidx-lifecycle-common", "androidx-lifecycle-extensions"]
@@ -162,7 +164,7 @@ androidx-lifecycle = ["androidx-lifecycle-viewmodel", "androidx-lifecycle-viewmo
 
 
 #"material", "androidx-material3",, "androidx-compose-bom", "androidx-compose-foundation"
-androidx-compose = ["androidx-activity-compose", "androidx-compose-ui", "androidx-compose-ui-graphics", "androidx-compose-ui-tooling", "androidx-compose-ui-tooling-preview", "androidx-compose-ui-viewbinding", "androidx-compose-material3", "androidx-compose-runtime-livedata","androidx-lifecycle-compose","androidx-compose-fonts"]
+androidx-compose = ["androidx-activity-compose", "androidx-compose-ui", "androidx-compose-ui-graphics", "androidx-compose-ui-tooling", "androidx-compose-ui-tooling-preview", "androidx-compose-ui-viewbinding", "androidx-compose-material3", "androidx-compose-runtime-livedata", "androidx-lifecycle-compose", "androidx-compose-fonts"]
 
 #androidTestImplementation(libs.androidx.compose.ui.test.junit4)
 #debugImplementation(libs.androidx.compose.ui.tooling)
@@ -178,9 +180,8 @@ androidx-navigation = ["androidx-navigation-compose", "androidx-navigation-fragm
 squareup-retrofit = ["squareup-retrofit", "squareup-retrofit-convertor"]
 squareup-moshi = ["squareup-moshi", "squareup-moshi-kotlin"]
 
-misc = ["timber"]
+misc = ["timber", "coil"]
 
-spintly =["google-gson"]
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
