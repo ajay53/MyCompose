@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -19,6 +20,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -36,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -79,7 +83,9 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
 
 
 
-    Column(modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.surface)) {
+    Column(
+        modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.surface)
+    ) {
 
 //        Text("sdkjfkjvbkjdabvjfd")
 //        viewModel.insertLogin(LoginEntity("dum dum", "email@gmail.com", "pass pass"))
@@ -118,6 +124,7 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
                 Timber.tag(TAG).d("businessState: $businesses")
 
                 LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
                     modifier = Modifier
                         .fillMaxSize()
                 ) {
@@ -125,7 +132,10 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
                         items = businessState.data.businesses,
                         key = { _, item -> item.id }
                     ) { _, item ->
-                        BusinessListItem(business = item)
+                        BusinessListItem(
+                            business = item,
+                            modifier = Modifier.padding(horizontal = 10.dp)
+                        )
                     }
                 }
             }
@@ -140,16 +150,22 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
 }
 
 @Composable
-fun BusinessListItem(business: Business) {
-    Surface(
+fun BusinessListItem(business: Business, modifier: Modifier = Modifier) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
         shape = RoundedCornerShape(10.dp),
-        modifier = Modifier.fillMaxWidth().padding(all = 5.dp)
-//            .background(color = MaterialTheme.colorScheme.background)
+        modifier = modifier
+            .fillMaxWidth()
+            .height(55.dp)
+//            .background(color = MaterialTheme.colorScheme.secondaryContainer)
     ) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.size(45.dp).wrapContentHeight()
+            modifier = Modifier.wrapContentHeight().padding(5.dp)
+//                .background(color = MaterialTheme.colorScheme.secondaryContainer)
         ) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
@@ -158,6 +174,7 @@ fun BusinessListItem(business: Business) {
                     .crossfade(true)
                     .placeholder(R.drawable.ic_launcher_background)
                     .build(),
+                error = painterResource(id = R.drawable.ic_launcher_background),
                 contentDescription = "business image",
                 modifier = Modifier
 //                    .fillMaxWidth()
@@ -170,9 +187,12 @@ fun BusinessListItem(business: Business) {
                 modifier = Modifier.weight(1f)
                     .padding(horizontal = 5.dp)
             ) {
-                Text(text = "Radius Selector")
-                Text(text = "Radius Selector")
-                Text(text = "Radius Selector")
+                Text(text = business.name, style = MaterialTheme.typography.labelSmall)
+                Text(text = business.location.address1, style = MaterialTheme.typography.labelSmall)
+                Text(
+                    text = business.isClosed.toString(),
+                    style = MaterialTheme.typography.labelSmall
+                )
             }
 
             Box(
@@ -183,7 +203,7 @@ fun BusinessListItem(business: Business) {
                     .clip(CircleShape)
                     .background(Color.Green)
             ) {
-                Text(text = "8", color = Color.White)
+                Text(text = business.rating.toString(), color = Color.White)
             }
         }
     }
