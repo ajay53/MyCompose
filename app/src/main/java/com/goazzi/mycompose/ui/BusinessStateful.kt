@@ -1,8 +1,6 @@
 package com.goazzi.mycompose.ui
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -25,7 +22,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,7 +35,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -55,15 +50,29 @@ import com.goazzi.mycompose.model.Location
 import com.goazzi.mycompose.model.SearchBusiness
 import com.goazzi.mycompose.util.Constants
 import com.goazzi.mycompose.util.LocationEnum
+import com.goazzi.mycompose.util.PermissionEnum
 import com.goazzi.mycompose.util.SortByEnum
 import com.goazzi.mycompose.viewmodel.ApiState
 import com.goazzi.mycompose.viewmodel.MainViewModel
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
 import timber.log.Timber
 
 private const val TAG = "BusinessStateful"
 
 @Composable
 fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
+
+    lateinit var fusedLocationClient: FusedLocationProviderClient
+    lateinit var locationCallback: LocationCallback
+    lateinit var locationRequest: LocationRequest
+    var lat: Double = 0.0
+    var lon: Double = 0.0
+
+    var radius by remember { mutableFloatStateOf(value = 100f) }
+    var locLocation by remember { mutableStateOf(value = LocationEnum.CURRENT) }
+    var checked by remember { mutableStateOf(true) }
 
     val searchBusiness = SearchBusiness(
         40.730610,
@@ -77,14 +86,13 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
     val businessState = viewModel.businessAPiState
 
 
-    var radius by remember { mutableFloatStateOf(value = 100f) }
-    var location by remember { mutableStateOf(value = LocationEnum.CURRENT) }
-    var checked by remember { mutableStateOf(true) }
-
 
 
     Column(
-        modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.surface)
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = MaterialTheme.colorScheme.surface)
+            .padding(horizontal = 15.dp)
     ) {
 
 //        Text("sdkjfkjvbkjdabvjfd")
@@ -100,7 +108,7 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
         }
 
         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-            Text(text = "Location: $location")
+            Text(text = "Location: $locLocation")
             Switch(checked = checked,
                 onCheckedChange = {
                     checked = it
@@ -134,18 +142,17 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
                     ) { _, item ->
                         BusinessListItem(
                             business = item,
-                            modifier = Modifier.padding(horizontal = 10.dp)
+                            modifier = Modifier
                         )
                     }
                 }
             }
         }
-
-
     }
+    RequestPermission(permissionEnum = PermissionEnum.GPS)
 
     LaunchedEffect(key1 = Unit) {
-        viewModel.getBusinesses(searchBusiness = searchBusiness)
+//        viewModel.getBusinesses(searchBusiness = searchBusiness)
     }
 }
 

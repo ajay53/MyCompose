@@ -99,8 +99,8 @@ dependencies {
 //    implementation(libs.glide.compiler)
 
     //retrofit
-    implementation(libs.squareup.retrofit)
-    implementation(libs.squareup.retrofit.convertor)
+//    implementation(libs.squareup.retrofit)
+//    implementation(libs.squareup.retrofit.convertor)
 
     //moshi
     implementation(libs.squareup.moshi)
@@ -136,11 +136,10 @@ dependencies {
 //    implementation("androidx.activity:activity-ktx:1.9.0")
 //    implementation("androidx.fragment:fragment-ktx:1.6.2")
 
-    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
 //    implementation("at.favre.lib:hkdf:1.1.0")
 
-    implementation("com.google.android.gms:play-services-vision:20.1.3")
+//    implementation(libs.play.services.vision)
 
 //    implementation("io.jsonwebtoken:jjwt-api:0.11.2")
 //    implementation("io.jsonwebtoken:jjwt-impl:0.11.2")
@@ -160,6 +159,7 @@ dependencies {
     //bundles______________________
     implementation(libs.bundles.androidx.lifecycle)
     implementation(libs.bundles.misc)
+    implementation(libs.bundles.squareup.retrofit)
 
 
    /* implementation(libs.androidx.core.ktx)
