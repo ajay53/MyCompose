@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -52,6 +53,7 @@ import com.goazzi.mycompose.util.Constants
 import com.goazzi.mycompose.util.LocationEnum
 import com.goazzi.mycompose.util.PermissionEnum
 import com.goazzi.mycompose.util.SortByEnum
+import com.goazzi.mycompose.util.Util
 import com.goazzi.mycompose.viewmodel.ApiState
 import com.goazzi.mycompose.viewmodel.MainViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -64,6 +66,8 @@ private const val TAG = "BusinessStateful"
 @Composable
 fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
 
+    val context = LocalContext.current
+
     lateinit var fusedLocationClient: FusedLocationProviderClient
     lateinit var locationCallback: LocationCallback
     lateinit var locationRequest: LocationRequest
@@ -73,6 +77,13 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
     var radius by remember { mutableFloatStateOf(value = 100f) }
     var locLocation by remember { mutableStateOf(value = LocationEnum.CURRENT) }
     var checked by remember { mutableStateOf(true) }
+    var isPermissionGranted by remember {
+        mutableStateOf(
+            value = Util.hasLocationPermission(context = context) && Util.isGpsEnabled(
+                context = context
+            )
+        )
+    }
 
     val searchBusiness = SearchBusiness(
         40.730610,
@@ -117,6 +128,24 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
 
         SeparatorSpacer()
 
+        var isButtonClicked by remember { mutableStateOf(false) }
+
+        Button(onClick = {
+            isButtonClicked = true
+        }) {
+            Text("Filled")
+        }
+
+        /*if (isButtonClicked) {
+            RequestPermission(permissionEnum = PermissionEnum.LOCATION, onPermissionGranted = {
+                if (Util.isGpsEnabled(context) && Util.hasLocationPermission(context)) {
+                    isPermissionGranted = true
+                }
+            }, onBack = {
+                isButtonClicked = false
+            })
+        }*/
+
         when (businessState) {
             is ApiState.Error -> {
                 Timber.tag(TAG).e(businessState.exception)
@@ -149,11 +178,42 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
             }
         }
     }
-    RequestPermission(permissionEnum = PermissionEnum.GPS)
 
-    LaunchedEffect(key1 = Unit) {
-//        viewModel.getBusinesses(searchBusiness = searchBusiness)
+
+    if (!isPermissionGranted) {
+        /*RequestPermission(permissionEnum = PermissionEnum.LOCATION, onPermissionGranted = {
+            if (Util.isGpsEnabled(context) && Util.hasLocationPermission(context)) {
+                isPermissionGranted = true
+            }
+        })*/
+        if (!Util.isGpsEnabled(context)) {
+            RequestPermission(permissionEnum = PermissionEnum.GPS, onPermissionGranted = {
+                if (Util.isGpsEnabled(context) && Util.hasLocationPermission(context)) {
+                    isPermissionGranted = true
+                }
+            }, onBack = {})
+        }
+        if (!Util.hasLocationPermission(context)) {
+            RequestPermission(permissionEnum = PermissionEnum.LOCATION, onPermissionGranted = {
+                if (Util.isGpsEnabled(context) && Util.hasLocationPermission(context)) {
+                    isPermissionGranted = true
+                }
+            }, onBack = {})
+        }
+
+
+        /*RequestPermission(permissionEnum = PermissionEnum.GPS, onPermissionGranted = {
+            if (Util.isGpsEnabled(context) && Util.hasLocationPermission(context)) {
+                isPermissionGranted = true
+            }
+        })*/
+    } else {
+        LaunchedEffect(key1 = Unit) {
+            viewModel.getBusinesses(searchBusiness = searchBusiness)
+        }
     }
+
+
 }
 
 @Composable

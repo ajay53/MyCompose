@@ -9,3 +9,18 @@ object Constants {
     const val LAT_US = 40.73061
     const val LON_US = -73.935242
 }
+
+object PrefKeys{
+    /**
+     * There is one work around which uses shouldShowRequestPermissionRationale.
+     * Create a SharedPreference with default value false and store value returned by shouldShowRequestPermissionRationale in it.
+     * Before updating the value, check if the value set was true. If it was true then don't update it.
+     *
+     * Whenever you want to check for permission, get the value from SharedPreference and current value returned by shouldShowRequestPermissionRationale.
+     * If shouldShowRequestPermissionRationale returns false but value from SharedPreference is true,
+     * you can deduce that Never ask again was selected by user.
+     */
+    const val SHOW_LOC_PERM_REQ = "show_loc_perm_req"
+
+
+}

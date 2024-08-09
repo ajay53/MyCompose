@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+
+message PermPreferences{
+  bool show_loc_perm_req = 1;
+}

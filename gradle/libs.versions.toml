@@ -150,6 +150,14 @@ timber = { group = "com.jakewharton.timber", name = "timber", version = "5.0.1" 
 #implementation("io.coil-kt:coil-compose:2.7.0")
 coil = { group = "io.coil-kt", name = "coil-compose", version = "2.7.0" }
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version = "0.34.0" }
+#implementation  "androidx.datastore:datastore:$dataStoreVersion"
+
+#implementation "androidx.datastore:datastore-preferences:1.0.0"
+#implementation "androidx.datastore:datastore-preferences-core:1.0.0"
+androidx-datastore = { group = "androidx.datastore", name = "datastore-preferences", version = "1.1.1" }
+androidx-datastore-core = { group = "androidx.datastore", name = "datastore-preferences-core", version = "1.1.1" }
+
+#google-protobuf = { group = "com.google.protobuf", name = "protobuf-javalite", version = "3.19.4" }
 
 [bundles]
 androidx-lifecycle = ["androidx-lifecycle-viewmodel", "androidx-lifecycle-viewmodel-compose", "androidx-lifecycle-livedata", "androidx-lifecycle-runtime", "androidx-lifecycle-common", "androidx-lifecycle-extensions"]
@@ -185,7 +193,7 @@ androidx-navigation = ["androidx-navigation-compose", "androidx-navigation-fragm
 squareup-retrofit = ["squareup-retrofit", "squareup-retrofit-convertor", "squareup-logging-interceptor"]
 squareup-moshi = ["squareup-moshi", "squareup-moshi-kotlin"]
 
-misc = ["timber", "coil", "accompanist-permissions", "google-play-services-location"]
+misc = ["timber", "coil", "accompanist-permissions", "google-play-services-location", "androidx-datastore","androidx-datastore-core"]
 
 
 [plugins]
