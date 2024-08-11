@@ -20,7 +20,7 @@ object PrefKeys{
      * If shouldShowRequestPermissionRationale returns false but value from SharedPreference is true,
      * you can deduce that Never ask again was selected by user.
      */
-    const val SHOW_LOC_PERM_REQ = "show_loc_perm_req"
+//    const val SHOW_LOC_PERM_REQ = "show_loc_perm_req"
 
 
 }

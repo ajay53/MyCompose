@@ -23,13 +23,13 @@ object PreferencesKeys {
 //SHOW_LOC_PERM_REQ
 fun Context.getShowLockPermReq(): Flow<Boolean> {
     return dataStore.data.map { preferences ->
-        preferences[PreferencesKeys.DARK_MODE] ?: false
+        preferences[PreferencesKeys.SHOW_LOC_PERM_REQ] ?: false
     }
 }
 
 suspend fun Context.setShowLockPermReq(isEnabled: Boolean) {
     dataStore.edit { preferences ->
-        preferences[PreferencesKeys.DARK_MODE] = isEnabled
+        preferences[PreferencesKeys.SHOW_LOC_PERM_REQ] = isEnabled
     }
 }
 

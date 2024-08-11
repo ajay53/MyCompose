@@ -53,7 +53,8 @@ import com.goazzi.mycompose.util.Constants
 import com.goazzi.mycompose.util.LocationEnum
 import com.goazzi.mycompose.util.PermissionEnum
 import com.goazzi.mycompose.util.SortByEnum
-import com.goazzi.mycompose.util.Util
+import com.goazzi.mycompose.util.d
+import com.goazzi.mycompose.util.hasLocationPermission
 import com.goazzi.mycompose.viewmodel.ApiState
 import com.goazzi.mycompose.viewmodel.MainViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -79,7 +80,7 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
     var checked by remember { mutableStateOf(true) }
     var isPermissionGranted by remember {
         mutableStateOf(
-            value = Util.hasLocationPermission(context = context) && Util.isGpsEnabled(
+            value = hasLocationPermission(context = context) && isGpsEnabled(
                 context = context
             )
         )
@@ -180,13 +181,23 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
     }
 
 
+    var shouldShowDialog by remember {
+        mutableStateOf(true)
+    }
+
     if (!isPermissionGranted) {
-        /*RequestPermission(permissionEnum = PermissionEnum.LOCATION, onPermissionGranted = {
-            if (Util.isGpsEnabled(context) && Util.hasLocationPermission(context)) {
-                isPermissionGranted = true
-            }
-        })*/
-        if (!Util.isGpsEnabled(context)) {
+        RequestPermission(
+//            permissionEnum = PermissionEnum.LOCATION,
+            shouldShowDialog = shouldShowDialog,
+            onPermissionGranted = {
+                if (isGpsEnabled(context) && hasLocationPermission(context)) {
+                    TAG.d(message = "All perm Granted")
+                    shouldShowDialog = false
+                    isPermissionGranted = true
+                }
+            },
+            onBack = {})
+        /*if (!Util.isGpsEnabled(context)) {
             RequestPermission(permissionEnum = PermissionEnum.GPS, onPermissionGranted = {
                 if (Util.isGpsEnabled(context) && Util.hasLocationPermission(context)) {
                     isPermissionGranted = true
@@ -200,7 +211,7 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
                 }
             }, onBack = {})
         }
-
+*/
 
         /*RequestPermission(permissionEnum = PermissionEnum.GPS, onPermissionGranted = {
             if (Util.isGpsEnabled(context) && Util.hasLocationPermission(context)) {
