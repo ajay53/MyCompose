@@ -51,10 +51,10 @@ import com.goazzi.mycompose.model.Location
 import com.goazzi.mycompose.model.SearchBusiness
 import com.goazzi.mycompose.util.Constants
 import com.goazzi.mycompose.util.LocationEnum
-import com.goazzi.mycompose.util.PermissionEnum
 import com.goazzi.mycompose.util.SortByEnum
 import com.goazzi.mycompose.util.d
 import com.goazzi.mycompose.util.hasLocationPermission
+import com.goazzi.mycompose.util.isGpsEnabled
 import com.goazzi.mycompose.viewmodel.ApiState
 import com.goazzi.mycompose.viewmodel.MainViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -186,8 +186,8 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
     }
 
     if (!isPermissionGranted) {
-        RequestPermission(
-//            permissionEnum = PermissionEnum.LOCATION,
+        PermissionDialogStateful(
+    //            permissionEnum = PermissionEnum.LOCATION,
             shouldShowDialog = shouldShowDialog,
             onPermissionGranted = {
                 if (isGpsEnabled(context) && hasLocationPermission(context)) {
@@ -195,8 +195,7 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
                     shouldShowDialog = false
                     isPermissionGranted = true
                 }
-            },
-            onBack = {})
+            })
         /*if (!Util.isGpsEnabled(context)) {
             RequestPermission(permissionEnum = PermissionEnum.GPS, onPermissionGranted = {
                 if (Util.isGpsEnabled(context) && Util.hasLocationPermission(context)) {

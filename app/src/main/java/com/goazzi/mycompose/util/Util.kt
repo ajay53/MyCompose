@@ -4,7 +4,11 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.LocationManager
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.core.app.ActivityCompat
+import com.goazzi.mycompose.R
 import timber.log.Timber
 
 private const val TAG = "Util"
@@ -34,3 +38,10 @@ fun hasLocationPermission(context: Context): Boolean {
     ) == PackageManager.PERMISSION_GRANTED
     return fineLoc && coarseLoc
 }
+
+val rursusFamily = FontFamily(
+    Font(R.font.rursus_compact_mono, FontWeight.Medium),
+    Font(R.font.rursus_compact_mono, FontWeight.Normal),
+    Font(R.font.rursus_compact_mono, FontWeight.Bold),
+    Font(R.font.rursus_compact_mono, FontWeight.SemiBold),
+)
