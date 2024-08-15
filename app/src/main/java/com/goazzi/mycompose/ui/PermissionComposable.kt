@@ -10,19 +10,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -36,7 +31,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -46,6 +40,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.goazzi.mycompose.R
@@ -149,21 +144,15 @@ fun PermissionDialogStateful(
         when (currRequest) {
             PermissionEnum.GPS -> {
                 if (isGpsEnabled(context)) {
-//                    shouldShowGpsRationale = false
                     Timber.tag(TAG).d(message = "GPS from Settings Enabled")
                     isGpsEnabled = true
-//                    showDialogLocal = false
-//                    onPermissionGranted()
                 }
             }
 
             PermissionEnum.LOCATION -> {
                 if (hasLocationPermission(context)) {
-//                    shouldShowPermissionRationale = false
                     Timber.tag(TAG).d(message = "Location from Settings Enabled")
                     hasLocationPermission = true
-//                    showDialogLocal = false
-//                    onPermissionGranted()
                 }
             }
         }
@@ -219,6 +208,7 @@ fun PermissionDialogStateful(
         }, modifier = Modifier
             .fillMaxWidth()
             .height(intrinsicSize = IntrinsicSize.Min)
+            .padding(horizontal = 30.dp)
     )
 }
 
@@ -234,11 +224,24 @@ fun PermissionDialogStateless(
 
     val title = when (permissionEnum) {
         PermissionEnum.GPS -> {
-            "Give GPS pls"
+            stringResource(id = R.string.gps_permission_title)
         }
 
         PermissionEnum.LOCATION -> {
-            if (isNeverAskAgain) "Give loc from Settings" else "pls grant location perm"
+            stringResource(id = R.string.location_permission_title)
+//            if (isNeverAskAgain) "Give loc from Settings" else "pls grant location perm"
+        }
+    }
+
+    val desc = when (permissionEnum) {
+        PermissionEnum.GPS -> {
+            stringResource(id = R.string.gps_permission_desc)
+        }
+
+        PermissionEnum.LOCATION -> {
+            if (isNeverAskAgain) stringResource(id = R.string.location_permission_never_ask_again)
+            else stringResource(id = R.string.location_permission_desc)
+
         }
     }
 
@@ -250,11 +253,10 @@ fun PermissionDialogStateless(
                 dismissOnClickOutside = false
             ), onDismissRequest = {
                 TAG.d(message = "onDismissRequest")
-//                showDialogLocal = false
-//            resetShowDialog()
             }) {
             PermissionDialogUI(
                 title = title,
+                desc = desc,
                 onYesClick = onAgreeClick,
                 onNoClick = onDeclineClick,
                 modifier = modifier
@@ -266,6 +268,7 @@ fun PermissionDialogStateless(
 @Composable
 fun PermissionDialogUI(
     title: String,
+    desc: String,
     onYesClick: () -> Unit,
     onNoClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -275,7 +278,6 @@ fun PermissionDialogUI(
             width = 1.dp, color = MaterialTheme.colorScheme.outline
         ),
         shape = MaterialTheme.shapes.medium,
-//        shape = RoundedCornerShape(16.dp),
         modifier = modifier,
     ) {
         Column(
@@ -290,9 +292,8 @@ fun PermissionDialogUI(
             Text(
                 text = title,
                 fontFamily = rursusFamily,
-//            fontSize = 18.sp,
+                letterSpacing = 0.sp,
                 style = MaterialTheme.typography.titleLarge,
-//            fontSize = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(horizontal = 15.dp)
@@ -307,32 +308,30 @@ fun PermissionDialogUI(
 //                    .background(color = MaterialTheme.colorScheme.secondary)
             )
             Text(
-                text = "Please grant location description bla bla bla",
-//            fontSize = 18.sp,
+                text = desc,
                 fontFamily = rursusFamily,
-                style = MaterialTheme.typography.bodyMedium,
-//            fontSize = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.bodyLarge,
+                letterSpacing = 0.sp,
                 color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Normal,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 15.dp)
-//                    .align(alignment = Alignment.CenterHorizontally)
             )
             SeparatorSpacer(modifier = Modifier.padding(top = 10.dp))
             Surface(
                 onClick = { onYesClick() },
                 modifier = Modifier
-//                    .background(color = MaterialTheme.colorScheme.secondary)
             ) {
                 Text(
                     text = stringResource(id = R.string.allow),
 //            fontSize = 18.sp,
                     fontFamily = rursusFamily,
+                    letterSpacing = 0.sp,
+                    textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodyLarge,
-//            fontSize = MaterialTheme.typography.titleMedium,
                     color = colorResource(id = R.color.allow),
                     fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(all = 10.dp)
+                    modifier = Modifier.padding(vertical = 10.dp, horizontal = 20.dp)
                 )
             }
 
@@ -344,22 +343,15 @@ fun PermissionDialogUI(
             ) {
                 Text(
                     text = stringResource(id = R.string.decline),
-//            fontSize = 18.sp,
                     fontFamily = rursusFamily,
+                    letterSpacing = 0.sp,
+                    textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodyLarge,
-//            fontSize = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(all = 10.dp)
+                    modifier = Modifier.padding(vertical = 10.dp, horizontal = 20.dp)
                 )
             }
-            /*Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = onYesClick) {
-                Text("Yes")
-            }
-            Button(onClick = onNoClick) {
-                Text("No")
-            }*/
         }
     }
 }
@@ -382,7 +374,11 @@ fun PermissionDialogStatelessPreview() {
 @Composable
 @Preview(showBackground = true, showSystemUi = true)
 fun PermissionDialogUIPreview() {
-    PermissionDialogUI(title = "Give me Permission", onYesClick = {}, onNoClick = {})
+    PermissionDialogUI(
+        title = stringResource(id = R.string.location_permission_title),
+        desc = stringResource(id = R.string.location_permission_desc),
+        onYesClick = {},
+        onNoClick = {})
 }
 
 /*fun isGpsEnabled(context: Context): Boolean {

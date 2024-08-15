@@ -1,11 +1,17 @@
 <resources>
     <string name="app_name">MyCompose</string>
     <string name="radius_selector">Radius Selector</string>
+
     <string name="location_permission_title">Need Location Access</string>
     <string name="location_permission_desc">Please grant location permission to continue searching for restaurants.</string>
+    <string name="location_permission_never_ask_again">Location permission was permanently disabled. Please grant location permission from settings</string>
+
     <string name="gps_permission_title">Need GPS Access</string>
     <string name="gps_permission_desc">Please enable GPS to continue searching for restaurants.</string>
+
+    <string name="go_to_settings">Go to Settings</string>
     <string name="allow">Allow</string>
     <string name="decline">Decline</string>
+
     <string name="no_restaurants_increase_radius">No Restaurants Found,\n Maybe increase the search radius?</string>
 </resources>
