@@ -26,7 +26,7 @@ fun isGpsEnabled(context: Context): Boolean {
     return isGpsEnabled
 }
 
-//checking for locatin permission
+//checking for location permission
 fun hasLocationPermission(context: Context): Boolean {
     val fineLoc: Boolean = ActivityCompat.checkSelfPermission(
         context,

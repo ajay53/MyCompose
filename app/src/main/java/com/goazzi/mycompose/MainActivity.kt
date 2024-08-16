@@ -43,7 +43,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-//            MyComposeTheme {
+            MyComposeTheme {
                 val navController = rememberNavController()
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
                         App(innerPadding = innerPadding, navController = navController)
 //                    }
                 }
-//            }
+            }
         }
     }
 }

@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import android.widget.Space
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -13,6 +14,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -31,11 +33,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -49,7 +53,6 @@ import com.goazzi.mycompose.util.d
 import com.goazzi.mycompose.util.getShowLockPermReq
 import com.goazzi.mycompose.util.hasLocationPermission
 import com.goazzi.mycompose.util.isGpsEnabled
-import com.goazzi.mycompose.util.rursusFamily
 import com.goazzi.mycompose.util.setShowLockPermReq
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
@@ -66,7 +69,7 @@ fun PermissionDialogStateful(
     val context = LocalContext.current
 
     //region setting request type and observe permission state & dismiss permission dialog
-    var currRequest by remember { mutableStateOf(PermissionEnum.GPS) }
+    var currRequest by remember { mutableStateOf<PermissionEnum?>(value = null) }
 
     var isGpsEnabled by remember { mutableStateOf(isGpsEnabled(context = context)) }
 
@@ -77,20 +80,29 @@ fun PermissionDialogStateful(
     LaunchedEffect(isGpsEnabled, hasLocationPermission) {
         currRequest = when {
             !isGpsEnabled -> PermissionEnum.GPS
-            else -> PermissionEnum.LOCATION
-//            !hasLocationPermission -> PermissionEnum.LOCATION
+            !hasLocationPermission -> PermissionEnum.LOCATION
+            else -> null
+        }
+        // Dismiss the dialog if all permissions are granted
+        if (isGpsEnabled && hasLocationPermission) {
+            onPermissionGranted()
         }
     }
 
-    val isPermissionGranted by remember {
+
+    /*val isPermissionGranted by remember {
         derivedStateOf {
             isGpsEnabled && hasLocationPermission
         }
-    }
+    }.apply {
+        if(this.value){
+            onPermissionGranted()
+        }
+    }*/
 
-    if (isPermissionGranted) {
+    /*if (isPermissionGranted) {
         onPermissionGranted()
-    }
+    }*/
     //endregion
 
     val showLocPermReq by context.getShowLockPermReq().collectAsState(initial = false)
@@ -155,6 +167,8 @@ fun PermissionDialogStateful(
                     hasLocationPermission = true
                 }
             }
+
+            null -> {}
         }
     }
 
@@ -176,47 +190,49 @@ fun PermissionDialogStateful(
     /**
      * Permission Dialog
      */
-    PermissionDialogStateless(
-        permissionEnum = currRequest,
-        shouldShowDialog = shouldShowDialog,
-        isNeverAskAgain = neverAskAgain,
-        onAgreeClick = {
-            when (currRequest) {
-                PermissionEnum.GPS -> {
-                    permissionSettingLauncher.launch(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
-                }
-
-                PermissionEnum.LOCATION -> {
-                    if (neverAskAgain) {
-                        val intent =
-                            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                data = Uri.fromParts(
-                                    "package",
-                                    context.packageName,
-                                    null
-                                )
-                            }
-                        permissionSettingLauncher.launch(input = intent)
-                    } else {
-                        locationPermState.launchMultiplePermissionRequest()
+    currRequest?.let { requestType ->
+        PermissionDialogStateless(
+            permissionEnum = requestType,
+            shouldShowDialog = shouldShowDialog,
+            isNeverAskAgain = neverAskAgain,
+            onAgreeClick = {
+                when (currRequest) {
+                    PermissionEnum.GPS -> {
+                        permissionSettingLauncher.launch(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
                     }
+
+                    PermissionEnum.LOCATION -> {
+                        if (neverAskAgain) {
+                            val intent =
+                                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                    data = Uri.fromParts(
+                                        "package",
+                                        context.packageName,
+                                        null
+                                    )
+                                }
+                            permissionSettingLauncher.launch(input = intent)
+                        } else {
+                            locationPermState.launchMultiplePermissionRequest()
+                        }
+                    }
+
+                    null -> {}
                 }
-            }
-        },
-        onDeclineClick = {
-            Toast.makeText(context, "Need Location Permission for API", Toast.LENGTH_SHORT).show()
-        }, modifier = Modifier
-            .fillMaxWidth()
-            .height(intrinsicSize = IntrinsicSize.Min)
-            .padding(horizontal = 30.dp)
-    )
+            },
+            onDeclineClick = {
+                Toast.makeText(context, "Need Location Permission for API", Toast.LENGTH_SHORT)
+                    .show()
+            }, modifier = Modifier
+        )
+    }
 }
 
 @Composable
 fun PermissionDialogStateless(
     permissionEnum: PermissionEnum,
-    shouldShowDialog: Boolean = true,
-    isNeverAskAgain: Boolean = false,
+    shouldShowDialog: Boolean,
+    isNeverAskAgain: Boolean,
     onAgreeClick: () -> Unit,
     onDeclineClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -277,24 +293,27 @@ fun PermissionDialogUI(
         border = BorderStroke(
             width = 1.dp, color = MaterialTheme.colorScheme.outline
         ),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
         shape = MaterialTheme.shapes.medium,
-        modifier = modifier,
+        modifier = Modifier.padding(horizontal = 30.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 20.dp)
                 .wrapContentHeight(align = Alignment.CenterVertically)
-                .background(MaterialTheme.colorScheme.background),
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                .padding(top = 20.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+//            Spacer(modifier = Modifier.padding(top = 20.dp))
             Text(
                 text = title,
-                fontFamily = rursusFamily,
+//                fontFamily = rursusFamily,
                 letterSpacing = 0.sp,
                 style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onBackground,
+//                color = MaterialTheme.colorScheme.onSurface,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(horizontal = 15.dp)
             )
@@ -309,10 +328,11 @@ fun PermissionDialogUI(
             )
             Text(
                 text = desc,
-                fontFamily = rursusFamily,
+//                fontFamily = rursusFamily,
                 style = MaterialTheme.typography.bodyLarge,
                 letterSpacing = 0.sp,
-                color = MaterialTheme.colorScheme.onBackground,
+                color = MaterialTheme.colorScheme.onSurface,
+//                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Normal,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 15.dp)
@@ -321,17 +341,21 @@ fun PermissionDialogUI(
             Surface(
                 onClick = { onYesClick() },
                 modifier = Modifier
+                    .background(color = MaterialTheme.colorScheme.surfaceContainerHigh)
+//                    .padding(vertical = 5.dp, horizontal = 20.dp)
             ) {
                 Text(
                     text = stringResource(id = R.string.allow),
-//            fontSize = 18.sp,
-                    fontFamily = rursusFamily,
                     letterSpacing = 0.sp,
                     textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        background = MaterialTheme.colorScheme.surfaceContainerHigh
+                    ),
                     color = colorResource(id = R.color.allow),
                     fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(vertical = 10.dp, horizontal = 20.dp)
+                    modifier = Modifier
+                        .background(color = MaterialTheme.colorScheme.surfaceContainerHigh)
+                        .padding(vertical = 10.dp, horizontal = 20.dp)
                 )
             }
 
@@ -339,17 +363,21 @@ fun PermissionDialogUI(
             Surface(
                 onClick = { onNoClick() },
                 modifier = Modifier
-//                    .background(color = MaterialTheme.colorScheme.secondary)
+                    .background(color = MaterialTheme.colorScheme.surfaceContainerHigh)
+//                    .padding(vertical = 5.dp, horizontal = 20.dp)
             ) {
                 Text(
                     text = stringResource(id = R.string.decline),
-                    fontFamily = rursusFamily,
                     letterSpacing = 0.sp,
                     textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        background = MaterialTheme.colorScheme.surfaceContainerHigh
+                    ),
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(vertical = 10.dp, horizontal = 20.dp)
+                    modifier = Modifier
+                        .background(color = MaterialTheme.colorScheme.surfaceContainerHigh)
+                        .padding(vertical = 10.dp, horizontal = 20.dp)
                 )
             }
         }
@@ -361,6 +389,7 @@ fun PermissionDialogUI(
 fun PermissionDialogStatelessPreview() {
     PermissionDialogStateless(
         shouldShowDialog = true,
+        isNeverAskAgain = false,
         onAgreeClick = {},
         onDeclineClick = {},
         permissionEnum = PermissionEnum.LOCATION,
