@@ -1,12 +1,18 @@
 package com.goazzi.mycompose.ui
 
-//import android.location.LocationRequest
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,9 +22,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -28,6 +34,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -36,12 +43,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.goazzi.mycompose.R
@@ -53,7 +66,6 @@ import com.goazzi.mycompose.model.SearchBusiness
 import com.goazzi.mycompose.util.Constants
 import com.goazzi.mycompose.util.LocationEnum
 import com.goazzi.mycompose.util.SortByEnum
-import com.goazzi.mycompose.util.d
 import com.goazzi.mycompose.util.hasLocationPermission
 import com.goazzi.mycompose.util.isGpsEnabled
 import com.goazzi.mycompose.viewmodel.ApiState
@@ -76,15 +88,39 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
     var lat: Double = 0.0
     var lon: Double = 0.0
 
+    val businessItems: LazyPagingItems<Business> = viewModel.businessFlow.collectAsLazyPagingItems()
+    val searchParams by viewModel.searchBusiness.collectAsState()
+
     var radius by remember { mutableFloatStateOf(value = 100f) }
-    var locLocation by remember { mutableStateOf(value = LocationEnum.CURRENT) }
-    var checked by remember { mutableStateOf(true) }
+    var locLocation by remember { mutableStateOf(value = LocationEnum.USA) }
+    var checked by remember { mutableStateOf(false) }
     var isPermissionGranted by remember {
         mutableStateOf(
             value = hasLocationPermission(context = context) && isGpsEnabled(
                 context = context
             )
         )
+    }
+
+    LaunchedEffect(locLocation) {
+        when (locLocation) {
+            LocationEnum.USA -> {
+                val searchBusiness = SearchBusiness(
+                    40.730610,
+                    -73.935242,
+                    300,
+                    SortByEnum.BEST_MATCH.type,
+                    Constants.PAGE_LIMIT,
+                    0
+                )
+                radius = 100f
+
+                viewModel.getBusinesses(searchBusiness = searchBusiness)
+            }
+
+            LocationEnum.CURRENT -> {
+            }
+        }
     }
 
     val searchBusiness = SearchBusiness(
@@ -96,7 +132,13 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
         0
     )
 
-    val businessState = viewModel.businessAPiState
+    LaunchedEffect(radius) {
+        viewModel.updateSearchParams(
+            searchParams.copy(radius = radius.toInt())
+        )
+    }
+
+    val businessState by viewModel.businessAPiState.collectAsStateWithLifecycle()
 
 
 
@@ -122,21 +164,24 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
 
         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
             Text(text = "Location: $locLocation")
-            Switch(checked = checked,
+            Switch(
+                checked = checked,
                 onCheckedChange = {
                     checked = it
-                })
+                },
+                enabled = false
+            )
         }
 
         SeparatorSpacer()
 
-        var isButtonClicked by remember { mutableStateOf(false) }
+        /*var isButtonClicked by remember { mutableStateOf(false) }
 
         Button(onClick = {
             isButtonClicked = true
         }) {
             Text("Filled")
-        }
+        }*/
 
         /*if (isButtonClicked) {
             RequestPermission(permissionEnum = PermissionEnum.LOCATION, onPermissionGranted = {
@@ -148,17 +193,113 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
             })
         }*/
 
-        when (businessState) {
+        val lazyListState = rememberLazyListState()
+
+        LazyColumn(
+            state = lazyListState, verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            items(businessItems.itemCount) { index ->
+                val item = businessItems[index]
+                if (item != null) {
+                    BusinessListItem(
+                        business = item,
+                        modifier = Modifier
+                    )
+                }
+            }
+
+            businessItems.apply {
+                when {
+                    loadState.refresh is LoadState.Loading -> {
+                        item { Text("Loading...") }
+                    }
+                    loadState.append is LoadState.Loading -> {
+                        item { Text("Loading more...") }
+                    }
+                    loadState.refresh is LoadState.Error -> {
+                        val error = (loadState.refresh as LoadState.Error).error
+                        item { Text("Error: ${error.message}") }
+                    }
+                    loadState.append is LoadState.Error -> {
+                        val error = (loadState.append as LoadState.Error).error
+                        item { Text("Load more error: ${error.message}") }
+                    }
+                }
+            }
+
+
+            /*itemsIndexed(
+                items = businessItems.itemCount,
+                key = { _, item -> item } // Unique key for each item
+            ) { _, item ->
+                if (item != null) {
+                    BusinessListItem(
+                        business = item,
+                        modifier = Modifier
+                    )
+                }
+            }*/
+
+            /*when (val currentState = businessState) {
+                is ApiState.Error -> {}
+                ApiState.Idle -> {}
+                ApiState.Loading -> {
+                    items(viewModel.pageSize) { ShimmerListItem() } // Shimmer while loading
+                }
+
+                is ApiState.LoadingMore -> {
+                    itemsIndexed(
+                        items = currentState.data.businesses,
+//                        items = (businessState as ApiState.Success<BusinessesServiceClass>).data.businesses,
+                        key = { _, item -> item.id }
+                    ) { _, item ->
+                        BusinessListItem(
+                            business = item,
+                            modifier = Modifier
+                        )
+                    }
+                    items(viewModel.pageSize / 2) { ShimmerListItem() }
+                }
+
+                is ApiState.Success -> {
+
+
+                    itemsIndexed(
+                        items = currentState.data.businesses,
+                        key = { _, item -> item.id }
+                    ) { _, item ->
+                        BusinessListItem(
+                            business = item,
+                            modifier = Modifier
+                        )
+                    }
+                }
+            }*/
+            /*item {
+                if (listState is ListViewModel.ListState.Success || listState is ListViewModel.ListState.LoadingMore) {
+                    if (lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index == lazyListState.layoutInfo.totalItemsCount - 1) {
+                        LaunchedEffect(Unit) {
+                            viewModel.loadNextPage()
+                        }
+                    }
+                }
+            }*/
+        }
+
+        /*when (val currentState = businessState) {
             is ApiState.Error -> {
-                Timber.tag(TAG).e(businessState.exception)
+                Timber.tag(TAG).e(currentState.exception)
             }
 
             ApiState.Loading -> {
                 Timber.tag(TAG).d("loading")
+                IndeterminateLoader()
             }
 
             is ApiState.Success -> {
-                val businesses = businessState.data.businesses
+                val businesses = currentState.data.businesses
 
                 Timber.tag(TAG).d("businessState: $businesses")
 
@@ -168,7 +309,7 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
                         .fillMaxSize()
                 ) {
                     itemsIndexed(
-                        items = businessState.data.businesses,
+                        items = currentState.data.businesses,
                         key = { _, item -> item.id }
                     ) { _, item ->
                         BusinessListItem(
@@ -178,7 +319,10 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
                     }
                 }
             }
-        }
+
+            ApiState.Idle -> {}
+            is ApiState.LoadingMore<*> -> {}
+        }*/
     }
 
 
@@ -186,9 +330,9 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
         mutableStateOf(true)
     }
 
-    if (!isPermissionGranted) {
+    /*if (!isPermissionGranted) {
         PermissionDialogStateful(
-    //            permissionEnum = PermissionEnum.LOCATION,
+            //            permissionEnum = PermissionEnum.LOCATION,
             shouldShowDialog = shouldShowDialog,
             onPermissionGranted = {
                 if (isGpsEnabled(context) && hasLocationPermission(context)) {
@@ -197,32 +341,11 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
                     isPermissionGranted = true
                 }
             })
-        /*if (!Util.isGpsEnabled(context)) {
-            RequestPermission(permissionEnum = PermissionEnum.GPS, onPermissionGranted = {
-                if (Util.isGpsEnabled(context) && Util.hasLocationPermission(context)) {
-                    isPermissionGranted = true
-                }
-            }, onBack = {})
-        }
-        if (!Util.hasLocationPermission(context)) {
-            RequestPermission(permissionEnum = PermissionEnum.LOCATION, onPermissionGranted = {
-                if (Util.isGpsEnabled(context) && Util.hasLocationPermission(context)) {
-                    isPermissionGranted = true
-                }
-            }, onBack = {})
-        }
-*/
-
-        /*RequestPermission(permissionEnum = PermissionEnum.GPS, onPermissionGranted = {
-            if (Util.isGpsEnabled(context) && Util.hasLocationPermission(context)) {
-                isPermissionGranted = true
-            }
-        })*/
     } else {
         LaunchedEffect(key1 = Unit) {
             viewModel.getBusinesses(searchBusiness = searchBusiness)
         }
-    }
+    }*/
 
 
 }
@@ -242,7 +365,9 @@ fun BusinessListItem(business: Business, modifier: Modifier = Modifier) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.wrapContentHeight().padding(5.dp)
+            modifier = Modifier
+                .wrapContentHeight()
+                .padding(5.dp)
 //                .background(color = MaterialTheme.colorScheme.secondaryContainer)
         ) {
             AsyncImage(
@@ -262,7 +387,8 @@ fun BusinessListItem(business: Business, modifier: Modifier = Modifier) {
 
             Column(
                 verticalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
                     .padding(horizontal = 5.dp)
             ) {
                 Text(text = business.name, style = MaterialTheme.typography.labelSmall)
@@ -346,6 +472,7 @@ fun RadiusSlider(onValueChangeFinished: (value: Float) -> Unit) {
             interactionSource = interactionSource,
             onValueChangeFinished = {
                 Timber.tag(TAG).d(message = "onValueChangeFinished")
+                onValueChangeFinished(sliderPosition)
             },
 //            modifier = Modifier.background(color = Color.Blue)
         )
@@ -360,4 +487,29 @@ fun RadiusSlider(onValueChangeFinished: (value: Float) -> Unit) {
 @Preview(showBackground = true, showSystemUi = true)
 fun RadiusSliderPreview() {
     RadiusSlider(onValueChangeFinished = {})
+}
+
+@Composable
+fun ShimmerListItem() {
+    val transition = rememberInfiniteTransition()
+    val translateAnim = transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        )
+    )
+    val brush = Brush.linearGradient(
+        colors = listOf(Color.LightGray.copy(0.6f), Color.LightGray.copy(0.2f)),
+        start = Offset(10f, 10f),
+        end = Offset(translateAnim.value, translateAnim.value)
+    )
+    Spacer(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(70.dp)
+            .padding(16.dp)
+            .background(brush)
+    )
 }

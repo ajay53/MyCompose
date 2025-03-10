@@ -52,13 +52,15 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     kotlinOptions {
-        jvmTarget = "11"
+//        jvmTarget = "11"
+        jvmTarget = "21"
     }
     buildFeatures {
+        dataBinding = true
         compose = true
         buildConfig = true
     }
@@ -70,6 +72,10 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    // Allow Hilt to process Java 8 features
+    /*kapt {
+        correctErrorTypes = true
+    }*/
 }
 
 dependencies {
@@ -118,6 +124,7 @@ dependencies {
     //    new____________
     //hilt__________
     implementation(libs.dagger.hilt)
+//    ksp(libs.dagger.hilt.compiler)
     kapt(libs.dagger.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
@@ -130,17 +137,17 @@ dependencies {
 //    implementation(libs.glide.compiler)
 
     //retrofit
-    implementation(libs.squareup.retrofit)
-    implementation(libs.squareup.retrofit.convertor)
+//    implementation(libs.squareup.retrofit)
+//    implementation(libs.squareup.retrofit.convertor)
 
     //moshi
     implementation(libs.bundles.squareup.moshi)
     ksp(libs.squareup.moshi.codegen)
 
     //room
-    implementation(libs.androidx.room)
-    implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler)
+//    implementation(libs.androidx.room)
+//    implementation(libs.androidx.room.ktx)
+//    ksp(libs.androidx.room.compiler)
 
     //navigation
     implementation(libs.bundles.androidx.navigation)
@@ -151,13 +158,13 @@ dependencies {
     //androidTest
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(libs.androidx.room.testing)
+//    androidTestImplementation(libs.androidx.room.testing)
 
 //    debugImplementation(libs.androidx.ui.tooling)
 //    debugImplementation(libs.androidx.ui.test.manifest)
 
 //    annotationProcessor(libs.glide.compiler)
-    annotationProcessor(libs.androidx.room.compiler)
+//    annotationProcessor(libs.androidx.room.compiler)
 
     //endregion
 
@@ -167,6 +174,7 @@ dependencies {
     implementation(libs.bundles.glance)
     implementation(libs.bundles.misc)
     implementation(libs.bundles.firebase)
+    implementation(libs.bundles.squareup.retrofit)
 //    implementation(libs.bundles.qr)
 //    implementation(libs.bundles.camera)
 }

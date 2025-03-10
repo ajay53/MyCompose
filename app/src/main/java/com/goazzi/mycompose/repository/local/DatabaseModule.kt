@@ -1,18 +1,6 @@
 package com.goazzi.mycompose.repository.local
 
-import android.content.Context
-import androidx.room.Database
-import androidx.room.Room
-import androidx.room.RoomDatabase
-import com.goazzi.mycompose.repository.local.dao.LoginDao
-import com.goazzi.mycompose.repository.local.entity.LoginEntity
-import dagger.Module
-import dagger.Provides
-import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ViewModelComponent
-import dagger.hilt.android.qualifiers.ApplicationContext
-import dagger.hilt.android.scopes.ViewModelScoped
-
+/*
 @InstallIn(ViewModelComponent::class)
 @Module
 class DatabaseModule {
@@ -42,4 +30,4 @@ class DatabaseModule {
 abstract class DatabaseHandler : RoomDatabase() {
 
     abstract fun loginDao(): LoginDao
-}
+}*/
