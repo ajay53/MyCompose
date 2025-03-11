@@ -13,35 +13,51 @@ import timber.log.Timber
 
 private const val TAG = "Util"
 
-//checking for GPS
-fun isGpsEnabled(context: Context): Boolean {
-    val lm = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-    var isGpsEnabled = false
-    try {
-        isGpsEnabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER)
-    } catch (ex: java.lang.Exception) {
-        Timber.tag(TAG).d(message = "isGpsEnabled: $ex")
+object Util{
+    //checking for GPS
+    fun isGpsEnabled(context: Context): Boolean {
+        val lm = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        var isGpsEnabled = false
+        try {
+            isGpsEnabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER)
+        } catch (ex: java.lang.Exception) {
+            Timber.tag(TAG).d(message = "isGpsEnabled: $ex")
+        }
+
+        return isGpsEnabled
     }
 
-    return isGpsEnabled
+    //checking for location permission
+    fun hasLocationPermission(context: Context): Boolean {
+        val fineLoc: Boolean = ActivityCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+        val coarseLoc: Boolean = ActivityCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+        return fineLoc && coarseLoc
+    }
+
+    fun getRating(rating: Double):Int {
+
+//    val colorId: Int = when {
+        return when {
+            rating > 4.5 -> R.color.holo_green_dark
+            rating > 4.0 -> R.color.yellow
+            rating > 3.5 -> R.color.holo_orange_dark
+            else -> R.color.holo_red_dark
+        }
+    }
+
+    val rursusFamily = FontFamily(
+        Font(R.font.rursus_compact_mono, FontWeight.Medium),
+        Font(R.font.rursus_compact_mono, FontWeight.Normal),
+        Font(R.font.rursus_compact_mono, FontWeight.Bold),
+        Font(R.font.rursus_compact_mono, FontWeight.SemiBold),
+    )
 }
 
-//checking for location permission
-fun hasLocationPermission(context: Context): Boolean {
-    val fineLoc: Boolean = ActivityCompat.checkSelfPermission(
-        context,
-        Manifest.permission.ACCESS_FINE_LOCATION
-    ) == PackageManager.PERMISSION_GRANTED
-    val coarseLoc: Boolean = ActivityCompat.checkSelfPermission(
-        context,
-        Manifest.permission.ACCESS_COARSE_LOCATION
-    ) == PackageManager.PERMISSION_GRANTED
-    return fineLoc && coarseLoc
-}
 
-val rursusFamily = FontFamily(
-    Font(R.font.rursus_compact_mono, FontWeight.Medium),
-    Font(R.font.rursus_compact_mono, FontWeight.Normal),
-    Font(R.font.rursus_compact_mono, FontWeight.Bold),
-    Font(R.font.rursus_compact_mono, FontWeight.SemiBold),
-)
+

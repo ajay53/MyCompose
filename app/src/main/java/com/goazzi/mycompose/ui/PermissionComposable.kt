@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
-import android.widget.Space
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -14,7 +13,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -33,13 +31,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -49,10 +45,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.goazzi.mycompose.R
 import com.goazzi.mycompose.util.PermissionEnum
+import com.goazzi.mycompose.util.Util
 import com.goazzi.mycompose.util.d
 import com.goazzi.mycompose.util.getShowLockPermReq
-import com.goazzi.mycompose.util.hasLocationPermission
-import com.goazzi.mycompose.util.isGpsEnabled
 import com.goazzi.mycompose.util.setShowLockPermReq
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
@@ -71,9 +66,9 @@ fun PermissionDialogStateful(
     //region setting request type and observe permission state & dismiss permission dialog
     var currRequest by remember { mutableStateOf<PermissionEnum?>(value = null) }
 
-    var isGpsEnabled by remember { mutableStateOf(isGpsEnabled(context = context)) }
+    var isGpsEnabled by remember { mutableStateOf(Util.isGpsEnabled(context = context)) }
 
-    var hasLocationPermission by remember { mutableStateOf(hasLocationPermission(context = context)) }
+    var hasLocationPermission by remember { mutableStateOf(Util.hasLocationPermission(context = context)) }
 
     //This code block also acts as a list for all the necessary permissions
     // Update `currRequest` when relevant states change
@@ -155,14 +150,14 @@ fun PermissionDialogStateful(
     ) { _ ->
         when (currRequest) {
             PermissionEnum.GPS -> {
-                if (isGpsEnabled(context)) {
+                if (Util.isGpsEnabled(context)) {
                     Timber.tag(TAG).d(message = "GPS from Settings Enabled")
                     isGpsEnabled = true
                 }
             }
 
             PermissionEnum.LOCATION -> {
-                if (hasLocationPermission(context)) {
+                if (Util.hasLocationPermission(context)) {
                     Timber.tag(TAG).d(message = "Location from Settings Enabled")
                     hasLocationPermission = true
                 }

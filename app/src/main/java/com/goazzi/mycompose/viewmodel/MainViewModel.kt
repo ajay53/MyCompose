@@ -17,9 +17,11 @@ import com.goazzi.mycompose.model.SearchBusiness
 import com.goazzi.mycompose.repository.Repository
 import com.goazzi.mycompose.util.Constants
 import com.goazzi.mycompose.util.SortByEnum
+import com.goazzi.mycompose.util.d
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -35,14 +37,24 @@ class MainViewModel @Inject constructor(
     private val repository: Repository
 ) : ViewModel() {
 
+
     var page = 1
     val pageSize = 10
 
+    private val _radius = MutableStateFlow(100f)
+    val radius: StateFlow<Float> = _radius.asStateFlow()
+
+    fun updateRadius(newRadius: Float) {
+        _radius.value = newRadius
+    }
+
+    //    lat = 40.730610,
+//    lon = -73.935242,
     private val _searchBusiness = MutableStateFlow(
         SearchBusiness(
             lat = 0.0,
             lon = 0.0,
-            radius = 300,
+            radius = radius.value.toInt(),
             sortBy = SortByEnum.BEST_MATCH.type,
             limit = Constants.PAGE_LIMIT,
             offset = 0
@@ -59,7 +71,7 @@ class MainViewModel @Inject constructor(
     val metadata: StateFlow<BusinessesServiceClass?> = _metadata.asStateFlow()
 
     // Now businessFlow updates when searchBusiness changes
-    @OptIn(ExperimentalCoroutinesApi::class)
+    /*@OptIn(ExperimentalCoroutinesApi::class)
     val businessFlow: Flow<PagingData<Business>> = searchBusiness
         .flatMapLatest { searchParams ->
             Pager(
@@ -68,17 +80,50 @@ class MainViewModel @Inject constructor(
                     enablePlaceholders = false
                 ),
                 pagingSourceFactory = {
-                    BusinessPagingSource(
+                    val source = BusinessPagingSource(
                         repository,
                         searchParams,
                         onMetadataReceived = { metadata ->
-                            _metadata.value = metadata // Update metadata separately
+                            _metadata.value = metadata
                         })
+                    sourcesList.add(source)
+                    source
+                }
+            ).flow
+        }
+        .cachedIn(viewModelScope)*/
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val businessFlow: Flow<PagingData<Business>> = searchBusiness
+        .flatMapLatest { searchParams ->
+            Pager(
+                config = PagingConfig(
+                    pageSize = Constants.PAGE_LIMIT,
+                    prefetchDistance = 1,
+                    enablePlaceholders = false
+                ),
+                pagingSourceFactory = {
+                    BusinessPagingSource(
+                        repository = repository,
+                        searchBusiness = searchParams, // Pass searchParams here
+                        onMetadataReceived = { metadata ->
+                            _metadata.value = metadata // Update metadata separately
+                        }
+                    )
                 }
             ).flow
         }
         .cachedIn(viewModelScope)
 
+//    private val sourcesList = mutableListOf<BusinessPagingSource>()
+    fun updateSearch(newSearchBusiness: SearchBusiness) {
+        TAG.d("updateSearch called")
+        _searchBusiness.value = newSearchBusiness
+        /*sourcesList.forEach {
+            TAG.d("updateSearch called: forEach: $it")
+            it.updateSearchParameters(newSearchBusiness)
+        }*/
+    }
     /*fun insertLogin(loginEntity: LoginEntity) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.insertLogin(loginEntity = loginEntity)
@@ -99,8 +144,11 @@ class MainViewModel @Inject constructor(
 
     fun getBusinesses(searchBusiness: SearchBusiness) {
         viewModelScope.launch {
+            TAG.d(message = "getBusinesses: called: $searchBusiness")
+
             _businessAPiState.value = ApiState.Loading
             try {
+                delay(2000)
                 val result = withContext(Dispatchers.IO) {
                     repository.getBusinesses(searchBusiness = searchBusiness)
                 }
@@ -187,7 +235,7 @@ sealed class ApiState<out T> {
 class BusinessPagingSource(
     private val repository: Repository,
     private val searchBusiness: SearchBusiness,
-    private val onMetadataReceived: (BusinessesServiceClass) -> Unit // Callback for metadata
+    private val onMetadataReceived: (BusinessesServiceClass) -> Unit
 ) : PagingSource<Int, Business>() {
 
     override fun getRefreshKey(state: PagingState<Int, Business>): Int? {
@@ -199,29 +247,111 @@ class BusinessPagingSource(
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Business> {
         val pageIndex = params.key ?: 1
+
+        val lat = searchBusiness.lat
+        val lon = searchBusiness.lon
         return try {
-            val updatedSearch = searchBusiness.copy(offset = (pageIndex - 1) * Constants.PAGE_LIMIT)
-
-            val response = repository.getBusinesses(updatedSearch)
-            val body = response.body()
-
-            if (body != null) {
-                // Pass metadata to ViewModel
-                onMetadataReceived(body)
-
-                LoadResult.Page(
-                    data = body.businesses, // Only businesses for pagination
-                    prevKey = if (pageIndex == 1) null else pageIndex - 1,
-                    nextKey = if (body.businesses.isEmpty()) null else pageIndex + 1
-                )
+            if (lat == 0.0 || lon == 0.0) {
+                LoadResult.Error(Exception("Default location not set"))
             } else {
-                LoadResult.Error(Exception("Empty response body"))
+                val updatedSearch =
+                    searchBusiness.copy(offset = (pageIndex - 1) * Constants.PAGE_LIMIT)
+                TAG.d(message = "updated Search: $updatedSearch")
+
+                val response = repository.getBusinesses(updatedSearch)
+                val body = response.body()
+
+                body?.message = response.message()
+                body?.httpCode = response.code()
+
+                if (body != null) {
+                    onMetadataReceived(body)
+                    LoadResult.Page(
+                        data = body.businesses,
+                        prevKey = if (pageIndex == 1) null else pageIndex - 1,
+                        nextKey = if (body.businesses.isEmpty()) null else pageIndex + 1
+                    )
+                } else {
+                    LoadResult.Error(Exception("Empty response body"))
+                }
             }
         } catch (e: Exception) {
             LoadResult.Error(e)
         }
     }
+
+    companion object {
+        private const val TAG = "BusinessPagingSource"
+    }
 }
+
+/*class BusinessPagingSource(
+    private val repository: Repository,
+    private val initialSearchBusiness: SearchBusiness,
+    private val onMetadataReceived: (BusinessesServiceClass) -> Unit // Callback for metadata
+) : PagingSource<Int, Business>() {
+
+    private var currentSearchBusiness: SearchBusiness = initialSearchBusiness
+
+    fun updateSearchParameters(newSearchBusiness: SearchBusiness) {
+        TAG.d("updateSearchParameters in BusinessPagingSource called")
+        currentSearchBusiness = newSearchBusiness
+    }
+
+    override fun getRefreshKey(state: PagingState<Int, Business>): Int? {
+        return state.anchorPosition?.let { anchor ->
+            state.closestPageToPosition(anchor)?.prevKey?.plus(1)
+                ?: state.closestPageToPosition(anchor)?.nextKey?.minus(1)
+        }
+    }
+
+    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Business> {
+        val pageIndex = params.key ?: 1
+        return try {
+            // Use the currentSearchBusiness parameters here
+            val lat = currentSearchBusiness.lat
+            val lon = currentSearchBusiness.lon
+
+            if (lat == 0.0 || lon == 0.0) {
+                LoadResult.Error(Exception("Default"))
+
+            } else {
+                val updatedSearch =
+                    currentSearchBusiness.copy(offset = (pageIndex - 1) * Constants.PAGE_LIMIT)
+
+//            delay(2000)
+
+                TAG.d(message = "updated Search: $updatedSearch")
+
+                val response = repository.getBusinesses(updatedSearch)
+                val body = response.body()
+//            val body = result.body()!!
+
+                body?.message = response.message()
+                body?.httpCode = response.code()
+
+                if (body != null) {
+                    // Pass metadata to ViewModel
+                    onMetadataReceived(body)
+
+                    LoadResult.Page(
+                        data = body.businesses, // Only businesses for pagination
+                        prevKey = if (pageIndex == 1) null else pageIndex - 1,
+                        nextKey = if (body.businesses.isEmpty()) null else pageIndex + 1
+                    )
+                } else {
+                    LoadResult.Error(Exception("Empty response body"))
+                }
+            }
+        } catch (e: Exception) {
+            LoadResult.Error(e)
+        }
+    }
+
+    companion object {
+        private const val TAG = "BusinessPagingSource"
+    }
+}*/
 
 
 /*class BusinessPagingSource(

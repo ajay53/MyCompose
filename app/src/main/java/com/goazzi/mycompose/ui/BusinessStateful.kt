@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -47,7 +46,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -66,9 +67,8 @@ import com.goazzi.mycompose.model.SearchBusiness
 import com.goazzi.mycompose.util.Constants
 import com.goazzi.mycompose.util.LocationEnum
 import com.goazzi.mycompose.util.SortByEnum
-import com.goazzi.mycompose.util.hasLocationPermission
-import com.goazzi.mycompose.util.isGpsEnabled
-import com.goazzi.mycompose.viewmodel.ApiState
+import com.goazzi.mycompose.util.Util
+import com.goazzi.mycompose.util.e
 import com.goazzi.mycompose.viewmodel.MainViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -91,37 +91,63 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
     val businessItems: LazyPagingItems<Business> = viewModel.businessFlow.collectAsLazyPagingItems()
     val searchParams by viewModel.searchBusiness.collectAsState()
 
-    var radius by remember { mutableFloatStateOf(value = 100f) }
+//    var radius by remember { mutableFloatStateOf(value = 100f) }
+    val radius by viewModel.radius.collectAsState()
     var locLocation by remember { mutableStateOf(value = LocationEnum.USA) }
     var checked by remember { mutableStateOf(false) }
     var isPermissionGranted by remember {
         mutableStateOf(
-            value = hasLocationPermission(context = context) && isGpsEnabled(
+            value = Util.hasLocationPermission(context = context) && Util.isGpsEnabled(
                 context = context
             )
         )
     }
 
-    LaunchedEffect(locLocation) {
+    /*LaunchedEffect(locLocation) {
         when (locLocation) {
             LocationEnum.USA -> {
                 val searchBusiness = SearchBusiness(
                     40.730610,
                     -73.935242,
-                    300,
+                    radius.toInt(),
                     SortByEnum.BEST_MATCH.type,
                     Constants.PAGE_LIMIT,
                     0
                 )
-                radius = 100f
+//                radius = 100f
+                viewModel.updateRadius(100f)
 
-                viewModel.getBusinesses(searchBusiness = searchBusiness)
+                viewModel.updateSearchParams(
+                    searchParams.copy(
+                        lat = 40.730610,
+                        lon = -73.935242,
+                        radius = radius.toInt(),
+                        sortBy = SortByEnum.BEST_MATCH.type,
+                        limit = Constants.PAGE_LIMIT,
+                        offset = 0
+                    )
+                )
+//                viewModel.getBusinesses(searchBusiness = searchBusiness)
             }
 
             LocationEnum.CURRENT -> {
             }
         }
-    }
+    }*/
+
+    /*LaunchedEffect(Unit) {
+//        viewModel.updateSearchParams(
+        viewModel.updateSearch(
+            searchParams.copy(
+                lat = 40.730610,
+                lon = -73.935242,
+                radius = radius.toInt(),
+                sortBy = SortByEnum.BEST_MATCH.type,
+                limit = Constants.PAGE_LIMIT,
+                offset = 0
+            )
+        )
+    }*/
 
     val searchBusiness = SearchBusiness(
         40.730610,
@@ -133,8 +159,14 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
     )
 
     LaunchedEffect(radius) {
-        viewModel.updateSearchParams(
-            searchParams.copy(radius = radius.toInt())
+//        viewModel.updateSearchParams(
+        viewModel.updateSearch(
+            searchParams.copy(
+                lat = 40.70444381565246,
+                lon = -73.99451834098926,
+                radius = radius.toInt(),
+            )
+//            searchParams.copy(radius = radius.toInt())
         )
     }
 
@@ -159,7 +191,8 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
         }
 
         RadiusSlider {
-            radius = it
+//            radius = it
+            viewModel.updateRadius(it)
         }
 
         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
@@ -193,11 +226,18 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
             })
         }*/
 
+        // Force refresh when searchBusiness updates
+        LaunchedEffect(radius) {
+            businessItems.refresh()  // Clears previous results and fetches new ones
+        }
+
         val lazyListState = rememberLazyListState()
 
         LazyColumn(
-            state = lazyListState, verticalArrangement = Arrangement.spacedBy(10.dp),
+            state = lazyListState,
+            verticalArrangement = Arrangement.spacedBy(10.dp),
             modifier = Modifier
+                .padding(top = 10.dp)
                 .fillMaxSize()
         ) {
             items(businessItems.itemCount) { index ->
@@ -213,79 +253,36 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
             businessItems.apply {
                 when {
                     loadState.refresh is LoadState.Loading -> {
-                        item { Text("Loading...") }
+//                        item { Text("Loading...") }
+                        items(Constants.PAGE_LIMIT) {
+                            ShimmerListItem()
+                        }
                     }
+
                     loadState.append is LoadState.Loading -> {
-                        item { Text("Loading more...") }
+//                        item { Text("Loading more...") }
+                        items(Constants.PAGE_LIMIT) {
+                            ShimmerListItem()
+                        }
                     }
+
                     loadState.refresh is LoadState.Error -> {
                         val error = (loadState.refresh as LoadState.Error).error
+
+                        TAG.e(message = "error: $error")
+
+
                         item { Text("Error: ${error.message}") }
                     }
+
                     loadState.append is LoadState.Error -> {
                         val error = (loadState.append as LoadState.Error).error
+                        TAG.e(message = "error: $error")
+
                         item { Text("Load more error: ${error.message}") }
                     }
                 }
             }
-
-
-            /*itemsIndexed(
-                items = businessItems.itemCount,
-                key = { _, item -> item } // Unique key for each item
-            ) { _, item ->
-                if (item != null) {
-                    BusinessListItem(
-                        business = item,
-                        modifier = Modifier
-                    )
-                }
-            }*/
-
-            /*when (val currentState = businessState) {
-                is ApiState.Error -> {}
-                ApiState.Idle -> {}
-                ApiState.Loading -> {
-                    items(viewModel.pageSize) { ShimmerListItem() } // Shimmer while loading
-                }
-
-                is ApiState.LoadingMore -> {
-                    itemsIndexed(
-                        items = currentState.data.businesses,
-//                        items = (businessState as ApiState.Success<BusinessesServiceClass>).data.businesses,
-                        key = { _, item -> item.id }
-                    ) { _, item ->
-                        BusinessListItem(
-                            business = item,
-                            modifier = Modifier
-                        )
-                    }
-                    items(viewModel.pageSize / 2) { ShimmerListItem() }
-                }
-
-                is ApiState.Success -> {
-
-
-                    itemsIndexed(
-                        items = currentState.data.businesses,
-                        key = { _, item -> item.id }
-                    ) { _, item ->
-                        BusinessListItem(
-                            business = item,
-                            modifier = Modifier
-                        )
-                    }
-                }
-            }*/
-            /*item {
-                if (listState is ListViewModel.ListState.Success || listState is ListViewModel.ListState.LoadingMore) {
-                    if (lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index == lazyListState.layoutInfo.totalItemsCount - 1) {
-                        LaunchedEffect(Unit) {
-                            viewModel.loadNextPage()
-                        }
-                    }
-                }
-            }*/
         }
 
         /*when (val currentState = businessState) {
@@ -375,9 +372,9 @@ fun BusinessListItem(business: Business, modifier: Modifier = Modifier) {
                     .data(business.imageURL)
 //                    .data("https://via.placeholder.com/150")
                     .crossfade(true)
-                    .placeholder(R.drawable.ic_launcher_background)
+                    .placeholder(R.drawable.ic_restaurant)
                     .build(),
-                error = painterResource(id = R.drawable.ic_launcher_background),
+                error = painterResource(id = R.drawable.ic_restaurant),
                 contentDescription = "business image",
                 modifier = Modifier
 //                    .fillMaxWidth()
@@ -405,9 +402,15 @@ fun BusinessListItem(business: Business, modifier: Modifier = Modifier) {
                     .fillMaxHeight()
                     .aspectRatio(1f) // Ensures the Box is a square
                     .clip(CircleShape)
-                    .background(Color.Green)
+                    .background(color = colorResource(id = Util.getRating(business.rating)))
             ) {
-                Text(text = business.rating.toString(), color = Color.White)
+                Text(
+                    text = business.rating.toString(),
+                    color = Color.White,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Bold
+                    )
+                )
             }
         }
     }
