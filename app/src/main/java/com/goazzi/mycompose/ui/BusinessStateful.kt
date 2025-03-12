@@ -68,6 +68,7 @@ import com.goazzi.mycompose.util.Constants
 import com.goazzi.mycompose.util.LocationEnum
 import com.goazzi.mycompose.util.SortByEnum
 import com.goazzi.mycompose.util.Util
+import com.goazzi.mycompose.util.d
 import com.goazzi.mycompose.util.e
 import com.goazzi.mycompose.viewmodel.MainViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -158,7 +159,7 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
         0
     )
 
-    LaunchedEffect(radius) {
+    /*LaunchedEffect(radius) {
 //        viewModel.updateSearchParams(
         viewModel.updateSearch(
             searchParams.copy(
@@ -168,7 +169,7 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
             )
 //            searchParams.copy(radius = radius.toInt())
         )
-    }
+    }*/
 
     val businessState by viewModel.businessAPiState.collectAsStateWithLifecycle()
 
@@ -190,10 +191,10 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
             Text(text = radius.toString())
         }
 
-        RadiusSlider {
+        RadiusSlider (onValueChangeFinished = {
 //            radius = it
             viewModel.updateRadius(it)
-        }
+        })
 
         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
             Text(text = "Location: $locLocation")
@@ -227,9 +228,9 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
         }*/
 
         // Force refresh when searchBusiness updates
-        LaunchedEffect(radius) {
+       /* LaunchedEffect(searchBusiness) {
             businessItems.refresh()  // Clears previous results and fetches new ones
-        }
+        }*/
 
         val lazyListState = rememberLazyListState()
 
@@ -250,18 +251,32 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
                 }
             }
 
+            items(
+                count = businessItems.itemCount,
+                key = { index -> businessItems[index]?.id ?: index } // Use unique ID if available
+            ) { index ->
+                val item = businessItems[index]
+                if (item != null) {
+                    BusinessListItem(
+                        business = item,
+                        modifier = Modifier
+                    )
+                }
+            }
+
             businessItems.apply {
                 when {
                     loadState.refresh is LoadState.Loading -> {
-//                        item { Text("Loading...") }
+                        TAG.d("loadState.refresh")
                         items(Constants.PAGE_LIMIT) {
                             ShimmerListItem()
                         }
                     }
-
                     loadState.append is LoadState.Loading -> {
-//                        item { Text("Loading more...") }
+                        TAG.d("loadState.append")
+
                         items(Constants.PAGE_LIMIT) {
+//                        items(Constants.PAGE_LIMIT, key = { it }) {
                             ShimmerListItem()
                         }
                     }

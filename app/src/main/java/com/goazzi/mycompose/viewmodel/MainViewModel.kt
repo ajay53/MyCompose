@@ -24,9 +24,16 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.concatWith
+import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -60,7 +67,30 @@ class MainViewModel @Inject constructor(
             offset = 0
         )
     )
-    val searchBusiness: StateFlow<SearchBusiness> = _searchBusiness.asStateFlow()
+
+    //    val searchBusiness: StateFlow<SearchBusiness> = _searchBusiness.asStateFlow()
+    val searchBusiness: StateFlow<SearchBusiness> = combine(
+        _radius,
+    ) { radiusValue ->
+        SearchBusiness(
+            lat = 40.70444381565246,
+            lon = -73.99451834098926,
+            radius = radiusValue[0].toInt(),
+            sortBy = SortByEnum.BEST_MATCH.type,
+            limit = Constants.PAGE_LIMIT,
+            offset = 0
+        )
+    }.stateIn(
+        viewModelScope, SharingStarted.Lazily, SearchBusiness(
+            lat = 40.70444381565246,
+            lon = -73.99451834098926,
+            radius = radius.value.toInt(),
+            sortBy = SortByEnum.BEST_MATCH.type,
+            limit = Constants.PAGE_LIMIT,
+            offset = 0
+        )
+    )
+
 
     // Function to update searchBusiness at runtime
     fun updateSearchParams(newSearchBusiness: SearchBusiness) {
@@ -70,7 +100,6 @@ class MainViewModel @Inject constructor(
     private val _metadata = MutableStateFlow<BusinessesServiceClass?>(null)
     val metadata: StateFlow<BusinessesServiceClass?> = _metadata.asStateFlow()
 
-    // Now businessFlow updates when searchBusiness changes
     /*@OptIn(ExperimentalCoroutinesApi::class)
     val businessFlow: Flow<PagingData<Business>> = searchBusiness
         .flatMapLatest { searchParams ->
@@ -80,26 +109,25 @@ class MainViewModel @Inject constructor(
                     enablePlaceholders = false
                 ),
                 pagingSourceFactory = {
-                    val source = BusinessPagingSource(
-                        repository,
-                        searchParams,
-                        onMetadataReceived = { metadata ->
-                            _metadata.value = metadata
-                        })
-                    sourcesList.add(source)
-                    source
+                    BusinessPagingSource(
+                        repository = repository,
+                        searchBusiness = searchParams,
+                        onMetadataReceived = { metadata -> _metadata.value = metadata }
+                    )
                 }
             ).flow
+                .onStart { emit(PagingData.empty()) } // Clears list before loading
         }
         .cachedIn(viewModelScope)*/
 
+    //OG code
     @OptIn(ExperimentalCoroutinesApi::class)
     val businessFlow: Flow<PagingData<Business>> = searchBusiness
         .flatMapLatest { searchParams ->
             Pager(
                 config = PagingConfig(
                     pageSize = Constants.PAGE_LIMIT,
-                    prefetchDistance = 1,
+//                    prefetchDistance = 1,
                     enablePlaceholders = false
                 ),
                 pagingSourceFactory = {
@@ -112,10 +140,11 @@ class MainViewModel @Inject constructor(
                     )
                 }
             ).flow
+                .onStart { emit(PagingData.empty()) } // Clears list before loading
         }
         .cachedIn(viewModelScope)
 
-//    private val sourcesList = mutableListOf<BusinessPagingSource>()
+    //    private val sourcesList = mutableListOf<BusinessPagingSource>()
     fun updateSearch(newSearchBusiness: SearchBusiness) {
         TAG.d("updateSearch called")
         _searchBusiness.value = newSearchBusiness
