@@ -1,5 +1,6 @@
 package com.goazzi.mycompose.viewmodel
 
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
@@ -44,7 +45,7 @@ class MainViewModel @Inject constructor(
     private val repository: Repository
 ) : ViewModel() {
 
-
+    val lazyListState = LazyListState()
     var page = 1
     val pageSize = 10
 
@@ -103,22 +104,26 @@ class MainViewModel @Inject constructor(
     /*@OptIn(ExperimentalCoroutinesApi::class)
     val businessFlow: Flow<PagingData<Business>> = searchBusiness
         .flatMapLatest { searchParams ->
-            Pager(
-                config = PagingConfig(
-                    pageSize = Constants.PAGE_LIMIT,
-                    enablePlaceholders = false
-                ),
-                pagingSourceFactory = {
-                    BusinessPagingSource(
-                        repository = repository,
-                        searchBusiness = searchParams,
-                        onMetadataReceived = { metadata -> _metadata.value = metadata }
-                    )
+            flowOf(PagingData.empty<Business>()) // Emit empty data first
+                .onStart { emit(PagingData.empty()) } // Ensure UI resets immediately
+                .flatMapConcat {
+                    Pager(
+                        config = PagingConfig(
+                            pageSize = Constants.PAGE_LIMIT,
+                            enablePlaceholders = false
+                        ),
+                        pagingSourceFactory = {
+                            BusinessPagingSource(
+                                repository = repository,
+                                searchBusiness = searchParams,
+                                onMetadataReceived = { metadata -> _metadata.value = metadata }
+                            )
+                        }
+                    ).flow
                 }
-            ).flow
-                .onStart { emit(PagingData.empty()) } // Clears list before loading
         }
         .cachedIn(viewModelScope)*/
+
 
     //OG code
     @OptIn(ExperimentalCoroutinesApi::class)

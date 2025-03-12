@@ -173,8 +173,15 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
 
     val businessState by viewModel.businessAPiState.collectAsStateWithLifecycle()
 
+    val lazyListState = viewModel.lazyListState
+// Force refresh when searchBusiness updates
+    LaunchedEffect(radius) {
 
+        lazyListState.scrollToItem(0)
 
+        // unable to clear old data even tho the Load state gets into Refresh
+//            businessItems.refresh()  // Clears previous results and fetches new ones
+    }
 
     Column(
         modifier = Modifier
@@ -227,12 +234,9 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
             })
         }*/
 
-        // Force refresh when searchBusiness updates
-       /* LaunchedEffect(searchBusiness) {
-            businessItems.refresh()  // Clears previous results and fetches new ones
-        }*/
 
-        val lazyListState = rememberLazyListState()
+
+//        val lazyListState = rememberLazyListState()
 
         LazyColumn(
             state = lazyListState,
