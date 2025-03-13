@@ -187,7 +187,7 @@ fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
         modifier = Modifier
             .fillMaxSize()
             .background(color = MaterialTheme.colorScheme.surface)
-            .padding(horizontal = 15.dp)
+            .padding(horizontal = 15.dp, vertical = 15.dp)
     ) {
 
 //        Text("sdkjfkjvbkjdabvjfd")

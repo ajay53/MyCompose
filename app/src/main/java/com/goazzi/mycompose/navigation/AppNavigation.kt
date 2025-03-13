@@ -14,30 +14,36 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 
 enum class AllScreens {
-    SPLASH,
-    DASHBOARD,
-    AUTH,
+//    SPLASH,
+    YELP,
+    PIXABAY,
+    ACCOUNT
 }
 
-enum class AuthScreens {
-    LOGIN,
-    REGISTRATION
+enum class YelpScreens {
+    ROOT
 }
 
-enum class DashboardScreens {
-    CONTENT_LIST,
-    CONTENT_DETAIL
+enum class PixabayScreens {
+    ROOT
+}
+
+enum class AccountScreens {
+    ROOT
 }
 
 sealed class NavigationItem(val route: String) {
-    data object Splash : NavigationItem(AllScreens.SPLASH.name)
-    data object Dashboard : NavigationItem(AllScreens.DASHBOARD.name) {
-        data object ContentList : NavigationItem(DashboardScreens.CONTENT_LIST.name)
-        data object ContentDetail : NavigationItem(DashboardScreens.CONTENT_DETAIL.name)
+//    data object Splash : NavigationItem(AllScreens.SPLASH.name)
+
+
+    data object Yelp : NavigationItem(AllScreens.YELP.name) {
+        data object Root : NavigationItem(YelpScreens.ROOT.name)
     }
-    data object Auth : NavigationItem(AllScreens.AUTH.name) {
-        data object Login : NavigationItem(AuthScreens.LOGIN.name)
-        data object Registration : NavigationItem(AuthScreens.REGISTRATION.name)
+    data object Pixabay : NavigationItem(AllScreens.PIXABAY.name) {
+        data object Root : NavigationItem(PixabayScreens.ROOT.name)
+    }
+    data object Account : NavigationItem(AllScreens.ACCOUNT.name) {
+        data object Root : NavigationItem(AccountScreens.ROOT.name)
     }
 }
 
@@ -53,7 +59,7 @@ sealed interface ScreenParams {
     val navigationActions: @Composable (RowScope.() -> Unit)
 }
 
-data object DashboardListScreenParams : ScreenParams {
+data object YelpScreenParams : ScreenParams {
     sealed interface NavBarActionState {
         data object Settings : NavBarActionState
     }
@@ -62,7 +68,7 @@ data object DashboardListScreenParams : ScreenParams {
     val actionButtons: Flow<NavBarActionState> = _actionButtons.asSharedFlow()
 
     override val route: String
-        get() = DashboardScreens.CONTENT_LIST.name
+        get() = YelpScreens.ROOT.name
     override val routeParam: String
         get() = ""
     override val isAppBarVisible: Boolean
@@ -75,6 +81,76 @@ data object DashboardListScreenParams : ScreenParams {
         get() = null
     override val title: String
         get() = "Restaurants"
+    override val navigationActions: @Composable (RowScope.() -> Unit)
+        get() = {
+            IconButton(onClick = {
+                _actionButtons.tryEmit(NavBarActionState.Settings)
+            }) {
+                Icon(
+                    imageVector = Icons.Filled.Settings,
+                    contentDescription = "Localized description"
+                )
+            }
+        }
+}
+
+data object PixabayScreenParams : ScreenParams {
+    sealed interface NavBarActionState {
+        data object Settings : NavBarActionState
+    }
+
+    private val _actionButtons = MutableSharedFlow<NavBarActionState>(extraBufferCapacity = 1)
+    val actionButtons: Flow<NavBarActionState> = _actionButtons.asSharedFlow()
+
+    override val route: String
+        get() = PixabayScreens.ROOT.name
+    override val routeParam: String
+        get() = ""
+    override val isAppBarVisible: Boolean
+        get() = true
+    override val navigationIcon: ImageVector?
+        get() = Icons.Filled.Home
+    override val navigationIconContentDescription: String?
+        get() = "Home"
+    override val onNavigationIconClick: (() -> Unit)?
+        get() = null
+    override val title: String
+        get() = "Images"
+    override val navigationActions: @Composable (RowScope.() -> Unit)
+        get() = {
+            IconButton(onClick = {
+                _actionButtons.tryEmit(NavBarActionState.Settings)
+            }) {
+                Icon(
+                    imageVector = Icons.Filled.Settings,
+                    contentDescription = "Localized description"
+                )
+            }
+        }
+}
+
+data object AccountScreenParams : ScreenParams {
+    sealed interface NavBarActionState {
+        data object Settings : NavBarActionState
+    }
+
+    private val _actionButtons = MutableSharedFlow<NavBarActionState>(extraBufferCapacity = 1)
+    val actionButtons: Flow<NavBarActionState> = _actionButtons.asSharedFlow()
+
+    override val route: String
+        get() = AccountScreens.ROOT.name
+    override val routeParam: String
+        get() = ""
+    override val isAppBarVisible: Boolean
+        get() = true
+    override val navigationIcon: ImageVector?
+        get() = Icons.Filled.Home
+    override val navigationIconContentDescription: String?
+        get() = "Home"
+    override val onNavigationIconClick: (() -> Unit)?
+        get() = null
+    override val title: String
+        get() = "Account"
     override val navigationActions: @Composable (RowScope.() -> Unit)
         get() = {
             IconButton(onClick = {
