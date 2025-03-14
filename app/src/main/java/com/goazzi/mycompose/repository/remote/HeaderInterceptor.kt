@@ -10,7 +10,7 @@ class HeaderInterceptor:Interceptor {
             chain.request()
                 .newBuilder()
                 .addHeader("accept", "application/json")
-                .addHeader("Authorization", "Bearer ${BuildConfig.API_KEY}")
+                .addHeader("Authorization", "Bearer ${BuildConfig.YELP_API_KEY}")
                 .build()
         return chain.proceed(requestBuilder)
     }

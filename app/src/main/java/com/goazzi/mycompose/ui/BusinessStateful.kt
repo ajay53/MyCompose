@@ -79,7 +79,7 @@ import timber.log.Timber
 private const val TAG = "BusinessStateful"
 
 @Composable
-fun BusinessStateful(viewModel: MainViewModel = hiltViewModel()) {
+fun BusinessStateful(viewModel: MainViewModel) {
 
     val context = LocalContext.current
 
@@ -470,7 +470,7 @@ fun BusinessListItemPreview() {
 @Composable
 @Preview(showBackground = true, showSystemUi = true)
 fun BusinessStatefulPreview() {
-    BusinessStateful()
+//    BusinessStateful()
 }
 
 @Composable

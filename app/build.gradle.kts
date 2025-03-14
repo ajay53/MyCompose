@@ -40,12 +40,15 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        buildConfigField("String", "YELP_API_KEY", "\"" + keysProperties["yelp_api_key"] + "\"")
+        buildConfigField("String", "PIXABAY_API_KEY", "\"" + keysProperties["pixabay_api_key"] + "\"")
     }
 
     buildTypes {
-        debug {
+        /*debug {
             buildConfigField("String", "API_KEY", "\"" + keysProperties["yelp_api_key"] + "\"")
-        }
+        }*/
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")

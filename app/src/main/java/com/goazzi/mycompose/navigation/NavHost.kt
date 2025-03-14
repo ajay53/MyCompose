@@ -41,7 +41,7 @@ fun AppNavHost(
         ) {
             composable(route= UtilNavigation.getRouteName(NavigationItem.Pixabay.Root)) {
 //                BusinessStateful(viewModel = viewModel)
-                PixabayStateful()
+                PixabayStateful(viewModel = viewModel)
             }
         }
 
@@ -51,7 +51,7 @@ fun AppNavHost(
         ) {
             composable(route= UtilNavigation.getRouteName(NavigationItem.Account.Root)) {
 //                BusinessStateful(viewModel = viewModel)
-                AccountStateful()
+                AccountStateful(viewModel = viewModel)
             }
         }
 
