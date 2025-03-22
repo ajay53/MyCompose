@@ -1,6 +1,8 @@
 package com.goazzi.mycompose.viewmodel
 
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.ui.graphics.Path
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
@@ -12,9 +14,11 @@ import androidx.paging.cachedIn
 import com.goazzi.mycompose.model.Business
 import com.goazzi.mycompose.model.BusinessesServiceClass
 import com.goazzi.mycompose.model.SearchBusiness
+import com.goazzi.mycompose.model.pixabay.HitMedia
 import com.goazzi.mycompose.model.pixabay.PixabayServiceClass
 import com.goazzi.mycompose.repository.Repository
 import com.goazzi.mycompose.util.Constants
+import com.goazzi.mycompose.util.MediaSearchTypeEnum
 import com.goazzi.mycompose.util.SortByEnum
 import com.goazzi.mycompose.util.d
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -38,8 +42,15 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val repository: Repository
+    private val repository: Repository,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    companion object {
+        private const val TAG = "MainViewModel"
+
+        private const val CLICKED_MEDIA_KEY = "clicked_media"
+    }
 
     val lazyListState = LazyListState()
     var page = 1
@@ -213,17 +224,43 @@ class MainViewModel @Inject constructor(
 
     }*/
 
-    // Pixabay
-    private var _mediaAPIState = MutableStateFlow<ApiState<PixabayServiceClass>>(ApiState.Idle)
-    private val mediaAPIState: StateFlow<ApiState<PixabayServiceClass>> =
-        _mediaAPIState.asStateFlow()
+    // ========================= Pixabay =========================
+    /*private var _clickedMedia = MutableStateFlow<HitMedia?>(null)
+    val clickedMedia: StateFlow<HitMedia?> = _clickedMedia.asStateFlow()
 
-    fun searchMedia(params: Map<String, String>, dispatcher: CoroutineDispatcher = Dispatchers.IO) {
+    fun updateClickedMedia(newClickedMedia: HitMedia) {
+        _clickedMedia.value = newClickedMedia
+    }*/
+
+    private val _clickedMedia: MutableStateFlow<HitMedia?> = MutableStateFlow(
+        savedStateHandle.get<HitMedia?>(CLICKED_MEDIA_KEY)
+    )
+
+    val clickedMedia: StateFlow<HitMedia?> = _clickedMedia.asStateFlow()
+
+    fun updateClickedMedia(newClickedMedia: HitMedia) {
+        _clickedMedia.value = newClickedMedia
+        savedStateHandle[CLICKED_MEDIA_KEY] = newClickedMedia
+    }
+
+    private var _mediaAPIState =
+        MutableStateFlow<ApiState<PixabayServiceClass>>(ApiState.Idle)
+    val mediaAPIState: StateFlow<ApiState<PixabayServiceClass>> = _mediaAPIState
+        .asStateFlow()
+
+    /*private var _mediaAPIState = MutableStateFlow<ApiState<List<PixabayMedia>>>(ApiState.Idle)
+    val mediaAPIState: StateFlow<ApiState<List<PixabayMedia>>> = _mediaAPIState.asStateFlow()*/
+
+    fun searchMedia(
+        apiPath: String = "",
+        params: Map<String, String>,
+        dispatcher: CoroutineDispatcher = Dispatchers.IO
+    ) {
         viewModelScope.launch(dispatcher) {
             _mediaAPIState.value = ApiState.Loading
 
             try {
-                val response = repository.searchMedia(params = params)
+                val response = repository.searchMedia(apiPath = apiPath, params = params)
 
                 val body = response.body()
                 body?.message = response.message()
@@ -241,8 +278,15 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    companion object {
-        private const val TAG = "MainViewModel"
+
+    /**
+     * to persist the media_type of the search
+     */
+    private var _mediaSearchType = MutableStateFlow<MediaSearchTypeEnum>(MediaSearchTypeEnum.VIDEO)
+    val mediaSearchType = _mediaSearchType.asStateFlow()
+
+    fun updateMediaSearchType(newMediaSearchType: MediaSearchTypeEnum) {
+        _mediaSearchType.value = newMediaSearchType
     }
 }
 
@@ -316,112 +360,4 @@ class BusinessPagingSource(
     }
 }
 
-/*class BusinessPagingSource(
-    private val repository: Repository,
-    private val initialSearchBusiness: SearchBusiness,
-    private val onMetadataReceived: (BusinessesServiceClass) -> Unit // Callback for metadata
-) : PagingSource<Int, Business>() {
 
-    private var currentSearchBusiness: SearchBusiness = initialSearchBusiness
-
-    fun updateSearchParameters(newSearchBusiness: SearchBusiness) {
-        TAG.d("updateSearchParameters in BusinessPagingSource called")
-        currentSearchBusiness = newSearchBusiness
-    }
-
-    override fun getRefreshKey(state: PagingState<Int, Business>): Int? {
-        return state.anchorPosition?.let { anchor ->
-            state.closestPageToPosition(anchor)?.prevKey?.plus(1)
-                ?: state.closestPageToPosition(anchor)?.nextKey?.minus(1)
-        }
-    }
-
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Business> {
-        val pageIndex = params.key ?: 1
-        return try {
-            // Use the currentSearchBusiness parameters here
-            val lat = currentSearchBusiness.lat
-            val lon = currentSearchBusiness.lon
-
-            if (lat == 0.0 || lon == 0.0) {
-                LoadResult.Error(Exception("Default"))
-
-            } else {
-                val updatedSearch =
-                    currentSearchBusiness.copy(offset = (pageIndex - 1) * Constants.PAGE_LIMIT)
-
-//            delay(2000)
-
-                TAG.d(message = "updated Search: $updatedSearch")
-
-                val response = repository.getBusinesses(updatedSearch)
-                val body = response.body()
-//            val body = result.body()!!
-
-                body?.message = response.message()
-                body?.httpCode = response.code()
-
-                if (body != null) {
-                    // Pass metadata to ViewModel
-                    onMetadataReceived(body)
-
-                    LoadResult.Page(
-                        data = body.businesses, // Only businesses for pagination
-                        prevKey = if (pageIndex == 1) null else pageIndex - 1,
-                        nextKey = if (body.businesses.isEmpty()) null else pageIndex + 1
-                    )
-                } else {
-                    LoadResult.Error(Exception("Empty response body"))
-                }
-            }
-        } catch (e: Exception) {
-            LoadResult.Error(e)
-        }
-    }
-
-    companion object {
-        private const val TAG = "BusinessPagingSource"
-    }
-}*/
-
-
-/*class BusinessPagingSource(
-    private val repository: Repository,
-    private val searchBusiness: SearchBusiness
-) : PagingSource<Int, Business>() {
-
-    override fun getRefreshKey(state: PagingState<Int, Business>): Int? {
-        return state.anchorPosition?.let { anchorPosition ->
-            state.closestPageToPosition(anchorPosition)?.prevKey?.plus(1)
-                ?: state.closestPageToPosition(anchorPosition)?.nextKey?.minus(1)
-        }
-    }
-
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Business> {
-        val pageIndex = params.key ?: 1
-        return try {
-            val pageSize = params.loadSize
-            val updatedSearchBusiness =
-                searchBusiness.copy(offset = (pageIndex - 1) * Constants.PAGE_LIMIT)
-
-            val response = repository.getBusinesses(searchBusiness = updatedSearchBusiness)
-            val body = response.body()
-
-            if (body != null) {
-                val nextKey = if (body.businesses.isEmpty()) null else pageIndex + 1
-                val prevKey = if (pageIndex == 1) null else pageIndex - 1
-
-                LoadResult.Page(
-                    data = body.businesses,
-//                    data = mutableListOf(),
-                    prevKey = prevKey,
-                    nextKey = nextKey
-                )
-            } else {
-                LoadResult.Error(Exception("Empty response body"))
-            }
-        } catch (e: Exception) {
-            LoadResult.Error(e)
-        }
-    }
-}*/

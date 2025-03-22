@@ -88,6 +88,10 @@ object UtilNavigation {
             NavigationItem.Yelp.Root -> {
                 route = NavigationItem.Yelp.Root.route
             }
+
+            NavigationItem.Pixabay.MediaDetail -> {
+                route = NavigationItem.Pixabay.MediaDetail.route
+            }
         }
         return route
     }

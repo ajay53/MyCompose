@@ -49,6 +49,7 @@ google-mlkit = "17.3.0"
 auth0-java-jwt = "4.4.0"
 coil = "2.7.0"
 pagingVersion = "3.3.6"
+androidxMedia3 = "1.5.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -83,18 +84,11 @@ androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "u
 androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
-#androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
-#androidx-coordinatorlayout = { group = "androidx.coordinatorlayout", name = "coordinatorlayout", version.ref = "coordinatorlayout" }
-#implementation("androidx.compose.ui:ui-text-google-fonts:1.6.7")
 androidx-compose-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts" }
-
-#androidx-recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
-#androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
-#androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 google-play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
-#implementation "androidx.compose.ui:ui-viewbinding:1.3.2"
 androidx-compose-ui-viewbinding = { group = "androidx.compose.ui", name = "ui-viewbinding", version.ref = "composeViewBinding" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "composeViewBinding" }
 
 #navigation
 #implementation("androidx.navigation:navigation-compose:$nav_version")
@@ -175,7 +169,12 @@ datastore-preferences = { group = "androidx.datastore", name = "datastore-prefer
 splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashscreen" }
 squareup-okhttp3 = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "squareup-okhttp3" }
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist-permissions" }
+
+
+#Media
 coil = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "androidxMedia3" }
+androidx-media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "androidxMedia3" }
 
 #For AppWidgets support
 #implementation "androidx.glance:glance-appwidget:1.1.0"
@@ -222,7 +221,8 @@ androidx-navigation = ["androidx-navigation-compose", "androidx-navigation-fragm
 squareup-retrofit = ["squareup-retrofit", "squareup-retrofit-convertor", "androidx-paging-compose"]
 squareup-moshi = ["squareup-moshi", "squareup-moshi-kotlin", "squareup-moshi-codegen"]
 
-misc = ["timber", "datastore-preferences", "splashscreen", "squareup-okhttp3", "androidx-security-crypto-ktx", "androidx-biometric", "accompanist-permissions", "coil"]
+misc = ["timber", "datastore-preferences", "splashscreen", "squareup-okhttp3", "androidx-security-crypto-ktx", "androidx-biometric", "accompanist-permissions"]
+media = ["coil","androidx-media3-exoplayer", "androidx-media3-ui"]
 
 glance = ["glance-appwidget", "glance-material3"]
 

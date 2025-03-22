@@ -25,7 +25,8 @@ enum class YelpScreens {
 }
 
 enum class PixabayScreens {
-    ROOT
+    ROOT,
+    MEDIA_DETAIL
 }
 
 enum class AccountScreens {
@@ -41,6 +42,7 @@ sealed class NavigationItem(val route: String) {
     }
     data object Pixabay : NavigationItem(AllScreens.PIXABAY.name) {
         data object Root : NavigationItem(PixabayScreens.ROOT.name)
+        data object MediaDetail : NavigationItem(PixabayScreens.MEDIA_DETAIL.name)
     }
     data object Account : NavigationItem(AllScreens.ACCOUNT.name) {
         data object Root : NavigationItem(AccountScreens.ROOT.name)
@@ -94,7 +96,7 @@ data object YelpScreenParams : ScreenParams {
         }
 }
 
-data object PixabayScreenParams : ScreenParams {
+data object MediaDetailScreenParams : ScreenParams {
     sealed interface NavBarActionState {
         data object Settings : NavBarActionState
     }

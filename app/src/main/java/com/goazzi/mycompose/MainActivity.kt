@@ -152,7 +152,7 @@ fun App(
     AppNavHost(
         navController = navController,
 //        startDestination = getRouteName(NavigationItem.LockSite),
-        startDestination = NavigationItem.Yelp.route,
+        startDestination = NavigationItem.Pixabay.route,
         modifier = Modifier.padding(innerPadding)
     )
 }

@@ -32,6 +32,6 @@ class Repository @Inject constructor() {
         offset = searchBusiness.offset
     )
 
-    suspend fun searchMedia(params: Map<String, String>) =
-        pixabayApiService.searchMedia(params = params)
+    suspend fun searchMedia(apiPath:String,params: Map<String, String>) =
+        pixabayApiService.searchMedia(apiPath = apiPath, params = params)
 }

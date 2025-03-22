@@ -3,6 +3,9 @@ package com.goazzi.mycompose.repository.remote
 import android.content.Context
 import com.goazzi.mycompose.repository.remote.pixabay.PixabayApiService
 import com.goazzi.mycompose.util.Constants
+import com.goazzi.mycompose.util.MoshiExtensions
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -94,7 +97,7 @@ class RetrofitModule {
             Retrofit.Builder()
                 .baseUrl(Constants.PIXABAY_URL)
                 .client(okHttpClient)
-                .addConverterFactory(MoshiConverterFactory.create())
+                .addConverterFactory(MoshiConverterFactory.create(MoshiExtensions.moshiPixabay))
         }
 
         return retrofitBuilder

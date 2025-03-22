@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import com.goazzi.mycompose.ui.BusinessStateful
 import com.goazzi.mycompose.ui.account.AccountStateful
+import com.goazzi.mycompose.ui.pixabay.MediaDetailStateful
 import com.goazzi.mycompose.ui.pixabay.PixabayStateful
 import com.goazzi.mycompose.viewmodel.MainViewModel
 
@@ -30,7 +31,7 @@ fun AppNavHost(
             route = UtilNavigation.getRouteName(NavigationItem.Yelp),
             startDestination = UtilNavigation.getRouteName(NavigationItem.Yelp.Root)
         ) {
-            composable(route= UtilNavigation.getRouteName(NavigationItem.Yelp.Root)) {
+            composable(route = UtilNavigation.getRouteName(NavigationItem.Yelp.Root)) {
                 BusinessStateful(viewModel = viewModel)
             }
         }
@@ -39,9 +40,17 @@ fun AppNavHost(
             route = UtilNavigation.getRouteName(NavigationItem.Pixabay),
             startDestination = UtilNavigation.getRouteName(NavigationItem.Pixabay.Root)
         ) {
-            composable(route= UtilNavigation.getRouteName(NavigationItem.Pixabay.Root)) {
+            composable(route = UtilNavigation.getRouteName(NavigationItem.Pixabay.Root)) {
 //                BusinessStateful(viewModel = viewModel)
-                PixabayStateful(viewModel = viewModel)
+                PixabayStateful(
+                    viewModel = viewModel,
+                    onMediaClick = {
+                        navController.navigate(UtilNavigation.getRouteName(NavigationItem.Pixabay.MediaDetail))
+                    }
+                )
+            }
+            composable(route = UtilNavigation.getRouteName(NavigationItem.Pixabay.MediaDetail)) {
+                MediaDetailStateful(viewModel = viewModel)
             }
         }
 
@@ -49,7 +58,7 @@ fun AppNavHost(
             route = UtilNavigation.getRouteName(NavigationItem.Account),
             startDestination = UtilNavigation.getRouteName(NavigationItem.Account.Root)
         ) {
-            composable(route= UtilNavigation.getRouteName(NavigationItem.Account.Root)) {
+            composable(route = UtilNavigation.getRouteName(NavigationItem.Account.Root)) {
 //                BusinessStateful(viewModel = viewModel)
                 AccountStateful(viewModel = viewModel)
             }

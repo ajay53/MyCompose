@@ -15,3 +15,7 @@ enum class LocationEnum(value:String) {
     USA(value = "USA"),
     CURRENT(value="Current")
 }
+
+enum class MediaSearchTypeEnum {
+    IMAGE, VIDEO
+}
